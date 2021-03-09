@@ -6,8 +6,8 @@ import java.io.IOException;
 
 public interface IMessageService
 {
-    void SendMessage(Message message) throws IOException;
+    void SendMessage(Message message);
 
-    Message RetrieveMessage() throws IOException;
+    Message RetrieveMessage();
 }
 

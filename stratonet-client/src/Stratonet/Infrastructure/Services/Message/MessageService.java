@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.Level;
 
 public class MessageService implements IMessageService
 {
@@ -26,25 +27,40 @@ public class MessageService implements IMessageService
         this.os = os;
     }
 
-    public void SendMessage(Message message) throws IOException
+    public void SendMessage(Message message)
     {
-        os.write(message.requestPhase.getValue());
-        os.write(message.requestType.getValue());
-        os.writeInt(message.size);
-        os.writeUTF(message.payload);
+        try
+        {
+            os.write(message.requestPhase.getValue());
+            os.write(message.requestType.getValue());
+            os.writeInt(message.size);
+            os.writeUTF(message.payload);
+            logger.log(Level.INFO, "Sent message: " + "\"" + message.payload + "\"");
+        }
+        catch (IOException ex)
+        {
+            logger.log(Level.SEVERE, "Exception while sending message");
+        }
     }
 
-    public Message RetrieveMessage() throws IOException
+    public Message RetrieveMessage()
     {
-        RequestPhase requestPhase = RequestPhase.fromInteger(is.read());
-        RequestType requestType = RequestType.fromInteger(is.read());
-        int size = is.readInt();
-        byte[] payloadByte = new byte[size];
-        is.read(payloadByte, 0, size);
-        String payload = new String(payloadByte);
-
-        Message message = new Message(requestPhase, requestType, size, payload);
-
+        Message message = new Message();
+        try
+        {
+            message.setRequestPhase(RequestPhase.fromInteger(is.read()));
+            message.setRequestType(RequestType.fromInteger(is.read()));
+            int size = is.readInt();
+            message.setSize(size);
+            byte[] payloadByte = new byte[size];
+            is.read(payloadByte, 0, size);
+            message.setPayload(new String(payloadByte));
+            logger.log(Level.INFO, "Received message: " + "\"" + message.payload + "\"");
+        }
+        catch (IOException ex)
+        {
+            logger.log(Level.SEVERE, "Exception while retrieving message");
+        }
         return message;
     }
 }

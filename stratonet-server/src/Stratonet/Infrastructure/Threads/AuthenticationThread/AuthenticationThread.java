@@ -20,6 +20,7 @@ public class AuthenticationThread extends Thread
     private DataInputStream is;
     private DataOutputStream os;
     private IMessageService messageService;
+    private boolean receivedUsername = false;
 
     public AuthenticationThread(Socket socket)
     {
@@ -42,8 +43,13 @@ public class AuthenticationThread extends Thread
 
         try
         {
-            Message message = new Message(RequestPhase.AUTH, RequestType.CHALLENGE, 16, "Password");
+            Message message = new Message(RequestPhase.AUTH, RequestType.CHALLENGE, "Enter your username:");
             messageService.SendMessage(message);
+            while(!receivedUsername)
+            {
+                Message usernameMessage = messageService.RetrieveMessage();
+            }
+
         }
         catch (IOException ex)
         {

@@ -1,5 +1,7 @@
 package Stratonet.Infrastructure.Services.Authentication;
 
+import Stratonet.Core.Enums.RequestPhase;
+import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Message;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
@@ -10,6 +12,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.logging.Level;
 
 public class AuthenticationService implements IAuthenticationService
@@ -44,17 +47,17 @@ public class AuthenticationService implements IAuthenticationService
 
     public void RunAuthentication()
     {
-        try
-        {
-            while (!isAuthenticated)
+            Message message;
+            while ((message = messageService.RetrieveMessage()) != null)
             {
-                Message message = messageService.RetrieveMessage();
-                System.out.println(message.payload);
+                if (message.requestPhase.equals(RequestPhase.AUTH) && message.requestType.equals(RequestType.CHALLENGE))
+                {
+                    System.out.println(message.payload);
+                    Scanner scanner = new Scanner(System.in);
+                    String username = scanner.nextLine().trim();
+                    Message usernameMessage = new Message(RequestPhase.AUTH, RequestType.REQUEST, username);
+                    messageService.SendMessage(usernameMessage);
+                }
             }
-        }
-        catch (IOException ex)
-        {
-            logger.log(Level.SEVERE, "Exception while retrieving message");
-        }
     }
 }

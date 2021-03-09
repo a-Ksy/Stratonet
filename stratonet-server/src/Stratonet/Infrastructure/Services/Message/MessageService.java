@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.Level;
 
 public class MessageService implements IMessageService
 {
@@ -20,10 +21,10 @@ public class MessageService implements IMessageService
 
     public MessageService(Socket socket, DataInputStream is, DataOutputStream os)
     {
-            this.logger = StratonetLogger.getInstance();
-            this.socket = socket;
-            this.is = is;
-            this.os = os;
+        this.logger = StratonetLogger.getInstance();
+        this.socket = socket;
+        this.is = is;
+        this.os = os;
     }
 
     public void SendMessage(Message message) throws IOException
@@ -32,18 +33,21 @@ public class MessageService implements IMessageService
         os.write(message.requestType.getValue());
         os.writeInt(message.size);
         os.writeUTF(message.payload);
+        logger.log(Level.INFO, "Sent message: " + "\"" + message.payload + "\"" + " to the socket: " + socket.getRemoteSocketAddress());
     }
 
     public Message RetrieveMessage() throws IOException
     {
-        RequestPhase requestPhase = RequestPhase.fromInteger(is.read());
-        RequestType requestType = RequestType.fromInteger(is.read());
+        Message message = new Message();
+        message.setRequestPhase(RequestPhase.fromInteger(is.read()));
+        message.setRequestType(RequestType.fromInteger(is.read()));
         int size = is.readInt();
+        message.setSize(size);
         byte[] payloadByte = new byte[size];
         is.read(payloadByte, 0, size);
-        String payload = new String(payloadByte);
+        message.setPayload(new String(payloadByte));
 
-        Message message = new Message(requestPhase, requestType, size, payload);
+        logger.log(Level.INFO, "Received message: " + "\"" + message.payload + "\"" + " from the socket: " + socket.getRemoteSocketAddress());
 
         return message;
     }
