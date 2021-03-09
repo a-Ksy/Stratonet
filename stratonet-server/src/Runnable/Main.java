@@ -1,10 +1,11 @@
 package Runnable;
 
-import Stratonet.Infrastructure.Services.Socket.SocketService;
+import Stratonet.Infrastructure.Services.Startup.StartupService;
 
-public class Main {
-
-    public static void main(String[] args) {
-        SocketService socketService = new SocketService(SocketService.DEFAULT_SERVER_PORT);
+public class Main
+{
+    public static void main(String[] args)
+    {
+        StartupService startupService = new StartupService();
     }
 }

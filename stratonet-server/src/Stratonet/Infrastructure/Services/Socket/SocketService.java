@@ -1,42 +1,54 @@
 package Stratonet.Infrastructure.Services.Socket;
 
+import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Services.Socket.ISocketService;
-import Stratonet.Infrastructure.Threads.ServerThread;
+import Stratonet.Infrastructure.Threads.AuthenticationThread.AuthenticationThread;
 
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
 
-public class SocketService implements ISocketService {
+public class SocketService implements ISocketService
+{
+    private StratonetLogger logger;
+    private ServerSocket serverSocket;
 
-    public static final int DEFAULT_SERVER_PORT = 4444;
-    private final ServerSocket serverSocket;
+    public SocketService(int port)
+    {
+        logger = StratonetLogger.getInstance();
 
-    public SocketService(int port) {
-        try {
+        try
+        {
             serverSocket = new ServerSocket(port);
-            System.out.println("Oppened up a server socket on " + Inet4Address.getLocalHost());
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Server class.Constructor exception on oppening a server socket");
+            logger.log(Level.INFO, "Opened up a server socket on: " + Inet4Address.getLocalHost());
         }
-        while (true) {
-            ListenAndAccept();
+        catch (IOException ex)
+        {
+            logger.log(Level.SEVERE, "Exception while opening a server socket: " + ex);
         }
+
+        ListenAndAccept();
     }
 
-    private void ListenAndAccept() {
-        Socket s;
-        try {
-            s = serverSocket.accept();
-            System.out.println("A connection was established with a client on the address of " + s.getRemoteSocketAddress());
-            ServerThread st = new ServerThread(s);
-            st.start();
+    private void ListenAndAccept()
+    {
+        while (true)
+        {
+            Socket socket;
+            try
+            {
+                socket = serverSocket.accept();
+                logger.log(Level.INFO,"A connection was established with the client: " + socket.getRemoteSocketAddress());
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Server Class.Connection establishment error inside listen and accept function");
+                AuthenticationThread authenticationThread = new AuthenticationThread(socket);
+                authenticationThread.start();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.SEVERE, "Exception while establishing connection with the client: " + ex);
+            }
         }
     }
 }
