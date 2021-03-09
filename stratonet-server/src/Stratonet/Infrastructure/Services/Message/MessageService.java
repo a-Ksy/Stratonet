@@ -40,7 +40,7 @@ public class MessageService implements IMessageService
         RequestType requestType = RequestType.fromInteger(is.read());
         int size = is.readInt();
         byte[] payloadByte = new byte[size];
-        is.read(payloadByte, 7, size);
+        is.read(payloadByte, 0, size);
         String payload = new String(payloadByte);
 
         Message message = new Message(requestPhase, requestType, size, payload);
