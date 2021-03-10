@@ -10,7 +10,7 @@ public interface IAuthenticationService
 
     public boolean ValidateUsername(String username);
 
-    public boolean ValidatePassword();
+    public boolean ValidatePassword(User user, String password);
 
     public User GetUser(String username);
 

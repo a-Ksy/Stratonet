@@ -50,13 +50,22 @@ public class AuthenticationService implements IAuthenticationService
             Message message;
             while ((message = messageService.RetrieveMessage()).requestPhase != null)
             {
-                if (message.requestPhase.equals(RequestPhase.AUTH) && message.requestType.equals(RequestType.REQUEST))
+                if (message.requestPhase.equals(RequestPhase.AUTH))
                 {
-                    System.out.println(message.payload);
-                    Scanner scanner = new Scanner(System.in);
-                    String input = scanner.nextLine().trim();
-                    Message authMessage = new Message(RequestPhase.AUTH, RequestType.CHALLENGE, input);
-                    messageService.SendMessage(authMessage);
+                    if (message.requestType.equals(RequestType.REQUEST))
+                    {
+                        System.out.println(message.payload);
+                        Scanner scanner = new Scanner(System.in);
+                        String input = scanner.nextLine().trim();
+                        Message authMessage = new Message(RequestPhase.AUTH, RequestType.CHALLENGE, input);
+                        messageService.SendMessage(authMessage);
+                    }
+                    else if (message.requestType.equals(RequestType.FAIL))
+                    {
+                        logger.log(Level.INFO, "Authentication failed, closing connection");
+                        break;
+                    }
+
                 }
             }
     }

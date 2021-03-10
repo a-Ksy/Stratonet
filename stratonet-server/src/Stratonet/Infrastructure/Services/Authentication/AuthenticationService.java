@@ -41,8 +41,13 @@ public class AuthenticationService implements IAuthenticationService
     }
 
     @Override
-    public boolean ValidatePassword()
+    public boolean ValidatePassword(User user, String password)
     {
+        if (user.getPassword().equals(password))
+        {
+            return true;
+        }
+
         return false;
     }
 
