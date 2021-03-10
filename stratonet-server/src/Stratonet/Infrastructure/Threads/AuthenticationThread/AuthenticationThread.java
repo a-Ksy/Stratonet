@@ -1,10 +1,14 @@
 package Stratonet.Infrastructure.Threads.AuthenticationThread;
 
+import Stratonet.Core.Entities.Session;
+import Stratonet.Core.Entities.User;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Message;
+import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Message.IMessageService;
+import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
 
 import java.io.DataInputStream;
@@ -20,11 +24,16 @@ public class AuthenticationThread extends Thread
     private DataInputStream is;
     private DataOutputStream os;
     private IMessageService messageService;
+    private IAuthenticationService authenticationService;
+
     private boolean receivedUsername = false;
+    private boolean receivedPassword = false;
+    private int tryLeft = 3;
 
     public AuthenticationThread(Socket socket)
     {
         logger = StratonetLogger.getInstance();
+        authenticationService = new AuthenticationService();
         this.socket = socket;
     }
 
@@ -43,11 +52,39 @@ public class AuthenticationThread extends Thread
 
         try
         {
-            Message message = new Message(RequestPhase.AUTH, RequestType.CHALLENGE, "Enter your username:");
+            // Receiving username from client
+            Message message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your username:");
             messageService.SendMessage(message);
             while(!receivedUsername)
             {
                 Message usernameMessage = messageService.RetrieveMessage();
+
+                if (authenticationService.ValidateUsername(usernameMessage.payload))
+                {
+                    User user = authenticationService.GetUser(usernameMessage.payload);
+                    String generatedToken = authenticationService.GenerateToken(user);
+                    user.setSession(new Session(generatedToken, socket.getRemoteSocketAddress()));
+                    authenticationService.ModifyUser(user);
+
+                    receivedUsername = true;
+                }
+                else
+                {
+                    message = new Message(RequestPhase.AUTH, RequestType.FAIL, "User does not exist");
+                    messageService.SendMessage(message);
+                    logger.log(Level.INFO, "User does not exist, closing the connection");
+                    return;
+                }
+            }
+
+            // Receiving password from client
+            message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your password:" );
+            messageService.SendMessage(message);
+            while(!receivedPassword && tryLeft > 0)
+            {
+                Message passwordMessage = messageService.RetrieveMessage();
+                System.out.println(passwordMessage.payload);
+                break;
             }
 
         }
@@ -86,5 +123,10 @@ public class AuthenticationThread extends Thread
                 logger.log(Level.SEVERE, "Exception while closing the socket connection: " + ex);
             }
         }
+    }
+
+    private void ReceiveUsername()
+    {
+
     }
 }

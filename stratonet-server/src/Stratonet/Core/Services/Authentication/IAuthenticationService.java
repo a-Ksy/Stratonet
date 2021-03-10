@@ -1,5 +1,18 @@
 package Stratonet.Core.Services.Authentication;
 
-public class IAuthenticationService
+import Stratonet.Core.Entities.User;
+
+public interface IAuthenticationService
 {
+    public String GenerateToken(User user);
+
+    public boolean ValidateToken();
+
+    public boolean ValidateUsername(String username);
+
+    public boolean ValidatePassword();
+
+    public User GetUser(String username);
+
+    public void ModifyUser(User user);
 }

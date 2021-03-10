@@ -50,13 +50,13 @@ public class AuthenticationService implements IAuthenticationService
             Message message;
             while ((message = messageService.RetrieveMessage()).requestPhase != null)
             {
-                if (message.requestPhase.equals(RequestPhase.AUTH) && message.requestType.equals(RequestType.CHALLENGE))
+                if (message.requestPhase.equals(RequestPhase.AUTH) && message.requestType.equals(RequestType.REQUEST))
                 {
                     System.out.println(message.payload);
                     Scanner scanner = new Scanner(System.in);
-                    String username = scanner.nextLine().trim();
-                    Message usernameMessage = new Message(RequestPhase.AUTH, RequestType.REQUEST, username);
-                    messageService.SendMessage(usernameMessage);
+                    String input = scanner.nextLine().trim();
+                    Message authMessage = new Message(RequestPhase.AUTH, RequestType.CHALLENGE, input);
+                    messageService.SendMessage(authMessage);
                 }
             }
     }

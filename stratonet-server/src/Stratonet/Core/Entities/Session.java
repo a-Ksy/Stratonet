@@ -1,15 +1,17 @@
 package Stratonet.Core.Entities;
 
+import java.net.SocketAddress;
+
 public class Session
 {
     public String token;
 
-    public String connection;
+    public SocketAddress socketAddress;
 
-    public Session(String token, String connection)
+    public Session(String token, SocketAddress connection)
     {
         this.token = token;
-        this.connection = connection;
+        this.socketAddress = connection;
     }
 
     public String getToken() {
@@ -20,11 +22,11 @@ public class Session
         this.token = token;
     }
 
-    public String getConnection() {
-        return connection;
+    public SocketAddress getConnection() {
+        return socketAddress;
     }
 
-    public void setConnection(String connection) {
-        this.connection = connection;
+    public void setConnection(SocketAddress socketAddress) {
+        this.socketAddress = socketAddress;
     }
 }

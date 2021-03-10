@@ -37,11 +37,13 @@ public class UserRepository implements IUserRepository
         users = userParser.ParseUsersFromFile();
     }
 
+    @Override
     public ArrayList<User> GetUsers()
     {
         return users;
     }
 
+    @Override
     public void ModifyUser(User user)
     {
         for (User u : users)
@@ -51,5 +53,17 @@ public class UserRepository implements IUserRepository
                 u = user;
             }
         }
+    }
+
+    @Override
+    public User GetUserByUsername(String username) {
+        for (User u : users)
+        {
+            if (u.username.equals(username))
+            {
+                return u;
+            }
+        }
+        return null;
     }
 }

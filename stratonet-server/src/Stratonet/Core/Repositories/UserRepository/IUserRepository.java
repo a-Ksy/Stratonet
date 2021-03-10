@@ -7,4 +7,6 @@ public interface IUserRepository
     ArrayList<User> GetUsers();
 
     void ModifyUser(User user);
+
+    User GetUserByUsername(String username);
 }
