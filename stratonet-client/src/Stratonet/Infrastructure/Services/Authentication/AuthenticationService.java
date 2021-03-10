@@ -23,6 +23,7 @@ public class AuthenticationService implements IAuthenticationService
     private Socket socket;
     private boolean isAuthenticated = false;
     private IMessageService messageService;
+    private static String token = null;
 
     public AuthenticationService(Socket socket)
     {
@@ -48,31 +49,39 @@ public class AuthenticationService implements IAuthenticationService
     public void RunAuthentication()
     {
             Message message;
-            while ((message = messageService.RetrieveMessage()).requestPhase != null)
+            while ((message = messageService.RetrieveMessage()).getRequestPhase() != null)
             {
-                if (message.requestPhase.equals(RequestPhase.AUTH))
+                if (message.getRequestPhase().equals(RequestPhase.AUTH))
                 {
-                    if (message.requestType.equals(RequestType.REQUEST))
+                    if (message.getRequestType().equals(RequestType.REQUEST))
                     {
-                        System.out.println(message.payload);
+                        System.out.println(message.getPayload());
                         Scanner scanner = new Scanner(System.in);
                         String input = scanner.nextLine().trim();
                         Message authMessage = new Message(RequestPhase.AUTH, RequestType.CHALLENGE, input);
                         messageService.SendMessage(authMessage);
                     }
-                    else if (message.requestType.equals(RequestType.FAIL))
+                    else if (message.getRequestType().equals(RequestType.FAIL))
                     {
                         logger.log(Level.INFO, "Authentication failed, closing connection");
                         break;
                     }
-                    else if (message.requestType.equals(RequestType.SUCCESS))
+                    else if (message.getRequestType().equals(RequestType.SUCCESS))
                     {
                         logger.log(Level.INFO, "Successfully authenticated with the server.");
-                        String token = message.payload;
+                        setToken(message.getPayload());
                         System.out.println(token);
                     }
 
                 }
             }
+    }
+
+    public static String GetToken() {
+        return token;
+    }
+
+    private static void setToken(String token) {
+        AuthenticationService.token = token;
     }
 }

@@ -27,14 +27,20 @@ public class AuthenticationService implements IAuthenticationService
     }
 
     @Override
-    public boolean ValidateToken(User user, String token)
+    public boolean ValidateToken(String token)
     {
-        if (user.getSession().getToken().equals(token))
+        if (token == null || token == "")
         {
-            return true;
+            return false;
         }
 
-        return false;
+        User user = UserService.getInstance().GetUserByToken(token);
+        if (user == null)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     @Override

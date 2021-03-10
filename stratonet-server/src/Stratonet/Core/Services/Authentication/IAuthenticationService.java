@@ -6,7 +6,7 @@ public interface IAuthenticationService
 {
     public String GenerateToken(User user);
 
-    public boolean ValidateToken(User user, String token);
+    public boolean ValidateToken(String token);
 
     public boolean ValidateUsername(String username);
 

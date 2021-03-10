@@ -58,7 +58,6 @@ public class AuthenticationThread extends Thread
             }
 
             SendToken(user);
-
         }
         catch (IOException ex)
         {
@@ -118,11 +117,11 @@ public class AuthenticationThread extends Thread
         User user = null;
         while(!receivedUsername)
         {
-            Message usernameMessage = messageService.RetrieveMessage();
+            Message usernameMessage = messageService.RetrieveMessage(false);
 
-            if (authenticationService.ValidateUsername(usernameMessage.payload))
+            if (authenticationService.ValidateUsername(usernameMessage.getPayload()))
             {
-                user = UserService.getInstance().GetUser(usernameMessage.payload);
+                user = UserService.getInstance().GetUser(usernameMessage.getPayload());
                 user.setSession(new Session(null, socket.getRemoteSocketAddress()));
                 UserService.getInstance().ModifyUser(user);
 
@@ -151,9 +150,9 @@ public class AuthenticationThread extends Thread
             {
                 return;
             }
-            if (passwordMessage != null && passwordMessage.requestType.equals(RequestType.CHALLENGE))
+            if (passwordMessage != null && passwordMessage.getRequestType().equals(RequestType.CHALLENGE))
             {
-                if (passwordMessage.payload == null || !authenticationService.ValidatePassword(user, passwordMessage.payload))
+                if (passwordMessage.getPayload() == null || !authenticationService.ValidatePassword(user, passwordMessage.getPayload()))
                 {
                     tryLeft -= 1;
                     if (tryLeft == 0)
@@ -179,13 +178,12 @@ public class AuthenticationThread extends Thread
         ExecutorService executor = Executors.newCachedThreadPool();
         Callable<Message> task = new Callable<Message>() {
             public Message call() throws IOException {
-                return messageService.RetrieveMessage();
+                return messageService.RetrieveMessage(false);
             }
         };
         Future<Message> future = executor.submit(task);
         try {
             Message result = future.get(10, TimeUnit.SECONDS);
-            System.out.println(result.payload);
             return result;
         } catch (Exception ex) {
             logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");

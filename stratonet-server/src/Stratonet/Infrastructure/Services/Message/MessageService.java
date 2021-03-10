@@ -29,16 +29,37 @@ public class MessageService implements IMessageService
 
     public void SendMessage(Message message) throws IOException
     {
-        os.write(message.requestPhase.getValue());
-        os.write(message.requestType.getValue());
-        os.writeInt(message.size);
-        os.writeUTF(message.payload);
-        logger.log(Level.INFO, "Sent message: " + "\"" + message.payload + "\"" + " to the socket: " + socket.getRemoteSocketAddress());
+        if (message.getToken() != null)
+        {
+            os.writeInt(message.getToken().length() + 2);
+            os.writeUTF(message.getToken());
+            System.out.println("buraya girdi de ondn");
+        }
+        os.write(message.getRequestPhase().getValue());
+        os.write(message.getRequestType().getValue());
+        os.writeInt(message.getSize());
+        os.writeUTF(message.getPayload());
+        logger.log(Level.INFO, "Sent message: " + "\"" + message.getPayload() + "\"" + " to the socket: " + socket.getRemoteSocketAddress());
     }
 
-    public Message RetrieveMessage() throws IOException
+
+    public Message RetrieveMessage(boolean hasToken) throws IOException
     {
         Message message = new Message();
+        if (hasToken)
+        {
+            int tokenSize = is.readInt();
+            byte[] tokenByte = new byte[tokenSize];
+            is.readFully(tokenByte, 0, tokenSize);
+            String tokenWithExtraChars = new String(tokenByte);
+            StringBuilder token = new StringBuilder();
+            for (int i=2; i<tokenWithExtraChars.length(); i++)
+            {
+                token.append(tokenWithExtraChars.charAt(i));
+            }
+            message.setToken(token.toString());
+        }
+
         message.setRequestPhase(RequestPhase.fromInteger(is.read()));
         message.setRequestType(RequestType.fromInteger(is.read()));
         int size = is.readInt();
@@ -52,7 +73,7 @@ public class MessageService implements IMessageService
             payload.append(payloadWithExtraChars.charAt(i));
         }
         message.setPayload(payload.toString());
-        logger.log(Level.INFO, "Received message: " + "\"" + message.payload + "\"" + " from the socket: " + socket.getRemoteSocketAddress());
+        logger.log(Level.INFO, "Received message: " + "\"" + message.getPayload() + "\"" + " from the socket: " + socket.getRemoteSocketAddress());
 
         return message;
     }

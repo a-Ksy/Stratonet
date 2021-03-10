@@ -31,11 +31,16 @@ public class MessageService implements IMessageService
     {
         try
         {
-            os.write(message.requestPhase.getValue());
-            os.write(message.requestType.getValue());
-            os.writeInt(message.size);
-            os.writeUTF(message.payload);
-            logger.log(Level.INFO, "Sent message: " + "\"" + message.payload + "\"");
+            if (message.getToken() != null)
+            {
+                os.writeInt(message.getToken().length() + 2);
+                os.writeUTF(message.getToken());
+            }
+            os.write(message.getRequestPhase().getValue());
+            os.write(message.getRequestType().getValue());
+            os.writeInt(message.getSize());
+            os.writeUTF(message.getPayload());
+            logger.log(Level.INFO, "Sent message: " + "\"" + message.getPayload() + "\"");
         }
         catch (IOException ex)
         {
@@ -61,7 +66,7 @@ public class MessageService implements IMessageService
                 payload.append(payloadWithExtraChars.charAt(i));
             }
             message.setPayload(payload.toString());
-            logger.log(Level.INFO, "Received message: " + "\"" + message.payload + "\"");
+            logger.log(Level.INFO, "Received message: " + "\"" + message.getPayload() + "\"");
         }
         catch (IOException ex)
         {

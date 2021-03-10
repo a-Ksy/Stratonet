@@ -39,11 +39,16 @@ public class SocketService implements ISocketService
             Socket socket;
             try
             {
+                // Authentication Socket
                 socket = serverSocket.accept();
-                logger.log(Level.INFO,"A connection was established with the client: " + socket.getRemoteSocketAddress());
+                logger.log(Level.INFO,"AUTH: A connection was established with the client: " + socket.getRemoteSocketAddress());
 
                 AuthenticationThread authenticationThread = new AuthenticationThread(socket);
                 authenticationThread.start();
+
+                // Query Socket
+                socket = serverSocket.accept();
+                logger.log(Level.INFO,"QUERY: A connection was established with the client: " + socket.getRemoteSocketAddress());
             }
             catch (Exception ex)
             {

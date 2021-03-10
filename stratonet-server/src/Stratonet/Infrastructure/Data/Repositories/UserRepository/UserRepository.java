@@ -66,4 +66,17 @@ public class UserRepository implements IUserRepository
         }
         return null;
     }
+
+    @Override
+    public User GetUserByToken(String token) {
+        for (User u : users)
+        {
+            if (u.getSession().getToken().equals(token))
+            {
+                return u;
+            }
+        }
+        return null;
+    }
+
 }

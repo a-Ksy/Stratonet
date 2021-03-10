@@ -9,4 +9,6 @@ public interface IUserRepository
     void ModifyUser(User user);
 
     User GetUserByUsername(String username);
+
+    User GetUserByToken(String token);
 }

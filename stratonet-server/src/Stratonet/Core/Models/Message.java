@@ -7,13 +7,15 @@ import java.io.UnsupportedEncodingException;
 
 public class Message
 {
-    public RequestPhase requestPhase;
+    private RequestPhase requestPhase;
 
-    public RequestType requestType;
+    private RequestType requestType;
 
-    public int size;
+    private int size;
 
-    public String payload;
+    private String payload;
+
+    private String token;
 
     public Message(){}
 
@@ -22,6 +24,20 @@ public class Message
         this.requestPhase = requestPhase;
         this.requestType = requestType;
         this.payload = payload.trim();
+        this.token = null;
+        try
+        {
+            this.size = payload.getBytes("UTF-8").length + 2;
+        }
+        catch (UnsupportedEncodingException ex) {}
+    }
+
+    public Message(RequestPhase requestPhase, RequestType requestType, String payload, String token)
+    {
+        this.requestPhase = requestPhase;
+        this.requestType = requestType;
+        this.payload = payload.trim();
+        this.token = token;
         try
         {
             this.size = payload.getBytes("UTF-8").length + 2;
@@ -59,5 +75,13 @@ public class Message
 
     public void setPayload(String payload) {
         this.payload = payload;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

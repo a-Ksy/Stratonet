@@ -6,7 +6,11 @@ public interface IUserService
 {
     User GetUserByUsername(String username);
 
+    User GetUserByToken(String token);
+
     void ModifyUser(User user);
 
     User GetUser(String username);
+
+    
 }

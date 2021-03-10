@@ -27,6 +27,11 @@ public class UserService implements IUserService
         return UserRepository.getInstance().GetUserByUsername(username);
     }
 
+    public User GetUserByToken(String token)
+    {
+        return UserRepository.getInstance().GetUserByToken(token);
+    }
+
     public void ModifyUser(User user)
     {
         UserRepository.getInstance().ModifyUser(user);
