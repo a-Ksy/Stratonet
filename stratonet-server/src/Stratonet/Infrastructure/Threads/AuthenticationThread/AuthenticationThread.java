@@ -10,6 +10,7 @@ import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
+import Stratonet.Infrastructure.Services.User.UserService;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -42,19 +43,10 @@ public class AuthenticationThread extends Thread
     {
         try
         {
-            is = new DataInputStream(socket.getInputStream());
-            os = new DataOutputStream(socket.getOutputStream());
-            messageService = new MessageService(socket, is, os);
-        }
-        catch (IOException ex)
-        {
-            logger.log(Level.SEVERE, "Exception while opening IO stream: " + ex);
-        }
+            InitializeIO();
 
-        try
-        {
             User user = ReceiveUsernameAndFindUser();
-            if (user == null)
+            if (!receivedUsername)
             {
                 return;
             }
@@ -64,6 +56,9 @@ public class AuthenticationThread extends Thread
             {
                 return;
             }
+
+            SendToken(user);
+
         }
         catch (IOException ex)
         {
@@ -102,9 +97,22 @@ public class AuthenticationThread extends Thread
         }
     }
 
+    private void InitializeIO() throws NullPointerException
+    {
+        try
+        {
+            is = new DataInputStream(socket.getInputStream());
+            os = new DataOutputStream(socket.getOutputStream());
+            messageService = new MessageService(socket, is, os);
+        }
+        catch (IOException ex)
+        {
+            logger.log(Level.SEVERE, "Exception while opening IO stream: " + ex);
+        }
+    }
+
     private User ReceiveUsernameAndFindUser() throws IOException, NullPointerException
     {
-        // Receiving username from client
         Message message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your username:");
         messageService.SendMessage(message);
         User user = null;
@@ -114,10 +122,9 @@ public class AuthenticationThread extends Thread
 
             if (authenticationService.ValidateUsername(usernameMessage.payload))
             {
-                user = authenticationService.GetUser(usernameMessage.payload);
-                String generatedToken = authenticationService.GenerateToken(user);
-                user.setSession(new Session(generatedToken, socket.getRemoteSocketAddress()));
-                authenticationService.ModifyUser(user);
+                user = UserService.getInstance().GetUser(usernameMessage.payload);
+                user.setSession(new Session(null, socket.getRemoteSocketAddress()));
+                UserService.getInstance().ModifyUser(user);
 
                 receivedUsername = true;
             }
@@ -167,13 +174,8 @@ public class AuthenticationThread extends Thread
         }
     }
 
-    private void SendToken(User user) throws IOException, NullPointerException
+    private Message RetrieveMessageAndValidateTimeout(User user) throws IOException
     {
-        Message message = new Message(RequestPhase.AUTH, RequestType.SUCCESS, "GENERATED TOKEN HERE");
-        messageService.SendMessage(message);
-    }
-
-    private Message RetrieveMessageAndValidateTimeout(User user) throws IOException {
         ExecutorService executor = Executors.newCachedThreadPool();
         Callable<Message> task = new Callable<Message>() {
             public Message call() throws IOException {
@@ -183,17 +185,24 @@ public class AuthenticationThread extends Thread
         Future<Message> future = executor.submit(task);
         try {
             Message result = future.get(10, TimeUnit.SECONDS);
+            System.out.println(result.payload);
             return result;
-        } catch (TimeoutException ex) {
+        } catch (TimeoutException ex)
+        {
             logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
-            // handle the timeout
-        } catch (InterruptedException e) {
+            Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
+            messageService.SendMessage(message);
+            future.cancel(true);
+        } catch (InterruptedException e)
+        {
             logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
-            // handle the interrupts
-        } catch (ExecutionException e) {
+            Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
+            messageService.SendMessage(message);
+            future.cancel(true);
+        }
+        catch (ExecutionException e)
+        {
             logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
-            // handle other exceptions
-        } finally {
             Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
             messageService.SendMessage(message);
             future.cancel(true);
@@ -202,4 +211,12 @@ public class AuthenticationThread extends Thread
         return null;
     }
 
+    private void SendToken(User user) throws IOException, NullPointerException
+    {
+        String token = authenticationService.GenerateToken(user);
+        user.getSession().setToken(token);
+        UserService.getInstance().ModifyUser(user);
+        Message message = new Message(RequestPhase.AUTH, RequestType.SUCCESS, token);
+        messageService.SendMessage(message);
+    }
 }

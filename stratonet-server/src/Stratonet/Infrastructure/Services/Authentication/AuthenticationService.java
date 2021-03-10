@@ -2,37 +2,45 @@ package Stratonet.Infrastructure.Services.Authentication;
 
 import Stratonet.Core.Entities.User;
 import Stratonet.Core.Helpers.StratonetLogger;
-import Stratonet.Core.Repositories.UserRepository.IUserRepository;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
-import Stratonet.Infrastructure.Data.Repositories.UserRepository.UserRepository;
+import Stratonet.Infrastructure.Services.User.UserService;
 
 public class AuthenticationService implements IAuthenticationService
 {
     private StratonetLogger logger;
-    private IUserRepository userRepository;
+    private final String SUPER_SECRET_HASH_VALUE = "69";
+    private final int TOKEN_LENGTH = 6;
 
     public AuthenticationService()
     {
         logger = StratonetLogger.getInstance();
-        userRepository = UserRepository.getInstance();
     }
 
     @Override
     public String GenerateToken(User user)
     {
-        return null;
+        String tokenAsString = user.getUsername() + SUPER_SECRET_HASH_VALUE;
+
+        int token = Math.abs(tokenAsString.hashCode());
+
+        return String.valueOf(token).substring(0,TOKEN_LENGTH);
     }
 
     @Override
-    public boolean ValidateToken()
+    public boolean ValidateToken(User user, String token)
     {
+        if (user.getSession().getToken().equals(token))
+        {
+            return true;
+        }
+
         return false;
     }
 
     @Override
     public boolean ValidateUsername(String username)
     {
-        User user = userRepository.GetUserByUsername(username);
+        User user = UserService.getInstance().GetUserByUsername(username);
         if (user == null)
         {
             return false;
@@ -49,17 +57,5 @@ public class AuthenticationService implements IAuthenticationService
         }
 
         return false;
-    }
-
-    @Override
-    public User GetUser(String username)
-    {
-       return userRepository.GetUserByUsername(username);
-    }
-
-    @Override
-    public void ModifyUser(User user)
-    {
-        userRepository.ModifyUser(user);
     }
 }

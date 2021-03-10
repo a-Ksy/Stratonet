@@ -65,6 +65,12 @@ public class AuthenticationService implements IAuthenticationService
                         logger.log(Level.INFO, "Authentication failed, closing connection");
                         break;
                     }
+                    else if (message.requestType.equals(RequestType.SUCCESS))
+                    {
+                        logger.log(Level.INFO, "Successfully authenticated with the server.");
+                        String token = message.payload;
+                        System.out.println(token);
+                    }
 
                 }
             }
