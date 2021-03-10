@@ -23,7 +23,7 @@ public class Message
         this.payload = payload.trim();
         try
         {
-            this.size = payload.getBytes("UTF-8").length;
+            this.size = payload.getBytes("UTF-8").length + 2;
         }
         catch (UnsupportedEncodingException ex) {}
     }

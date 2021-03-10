@@ -44,9 +44,14 @@ public class MessageService implements IMessageService
         int size = is.readInt();
         message.setSize(size);
         byte[] payloadByte = new byte[size];
-        is.read(payloadByte, 0, size);
-        message.setPayload(new String(payloadByte));
-
+        is.readFully(payloadByte, 0, size);
+        String payloadWithExtraChars = new String(payloadByte);
+        StringBuilder payload = new StringBuilder();
+        for (int i=2; i<payloadWithExtraChars.length(); i++)
+        {
+            payload.append(payloadWithExtraChars.charAt(i));
+        }
+        message.setPayload(payload.toString());
         logger.log(Level.INFO, "Received message: " + "\"" + message.payload + "\"" + " from the socket: " + socket.getRemoteSocketAddress());
 
         return message;

@@ -48,7 +48,7 @@ public class AuthenticationService implements IAuthenticationService
     public void RunAuthentication()
     {
             Message message;
-            while ((message = messageService.RetrieveMessage()) != null)
+            while ((message = messageService.RetrieveMessage()).requestPhase != null)
             {
                 if (message.requestPhase.equals(RequestPhase.AUTH) && message.requestType.equals(RequestType.CHALLENGE))
                 {
