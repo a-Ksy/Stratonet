@@ -187,21 +187,7 @@ public class AuthenticationThread extends Thread
             Message result = future.get(10, TimeUnit.SECONDS);
             System.out.println(result.payload);
             return result;
-        } catch (TimeoutException ex)
-        {
-            logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
-            Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
-            messageService.SendMessage(message);
-            future.cancel(true);
-        } catch (InterruptedException e)
-        {
-            logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
-            Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
-            messageService.SendMessage(message);
-            future.cancel(true);
-        }
-        catch (ExecutionException e)
-        {
+        } catch (Exception ex) {
             logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
             Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
             messageService.SendMessage(message);
