@@ -64,4 +64,15 @@ public class AuthenticationService implements IAuthenticationService
 
         return false;
     }
+
+    @Override
+    public boolean CheckTokenExists(User user)
+    {
+        if (user.getSession() != null && user.getSession().getToken() != null)
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

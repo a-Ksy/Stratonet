@@ -29,7 +29,7 @@ public class QueryThread extends Thread
 
     private boolean receivedQuery = false;
 
-    private QueryThread(Socket socket)
+    public QueryThread(Socket socket)
     {
         logger = StratonetLogger.getInstance();
         this.authenticationService = new AuthenticationService();
@@ -102,11 +102,11 @@ public class QueryThread extends Thread
         while(!receivedQuery)
         {
             Message queryMessage = messageService.RetrieveMessage(true);
-            System.out.println(message.getToken());
             if (authenticationService.ValidateToken(queryMessage.getToken()))
             {
-                // Do sth
-                System.out.println("token was valid");
+                logger.log(Level.INFO, "Token is valid for the socket: " + socket.getRemoteSocketAddress());
+                // ToDo: Validate query
+                // ToDo: Call QueryService to convert the query.
                 receivedQuery = true;
             }
             else

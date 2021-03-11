@@ -4,11 +4,13 @@ import Stratonet.Core.Entities.User;
 
 public interface IAuthenticationService
 {
-    public String GenerateToken(User user);
+     String GenerateToken(User user);
 
-    public boolean ValidateToken(String token);
+     boolean ValidateToken(String token);
 
-    public boolean ValidateUsername(String username);
+     boolean ValidateUsername(String username);
 
-    public boolean ValidatePassword(User user, String password);
+     boolean ValidatePassword(User user, String password);
+
+     boolean CheckTokenExists(User user);
 }

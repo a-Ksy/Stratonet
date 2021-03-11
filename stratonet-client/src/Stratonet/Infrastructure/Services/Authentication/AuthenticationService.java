@@ -70,9 +70,9 @@ public class AuthenticationService implements IAuthenticationService
                     {
                         logger.log(Level.INFO, "Successfully authenticated with the server.");
                         setToken(message.getPayload());
-                        System.out.println(token);
+                        System.out.println("Received token= " + token);
+                        break;
                     }
-
                 }
             }
     }

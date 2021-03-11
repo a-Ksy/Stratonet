@@ -33,7 +33,6 @@ public class MessageService implements IMessageService
         {
             os.writeInt(message.getToken().length() + 2);
             os.writeUTF(message.getToken());
-            System.out.println("buraya girdi de ondn");
         }
         os.write(message.getRequestPhase().getValue());
         os.write(message.getRequestType().getValue());

@@ -46,11 +46,11 @@ public class AuthenticationThread extends Thread
             InitializeIO();
 
             User user = ReceiveUsernameAndFindUser();
+
             if (!receivedUsername)
             {
                 return;
             }
-
             ReceivePassword(user);
             if (!receivedPassword)
             {
@@ -75,18 +75,14 @@ public class AuthenticationThread extends Thread
                 if (is != null)
                 {
                     is.close();
-                    logger.log(Level.WARNING, "Socket Input closed");
                 }
-
                 if (os != null)
                 {
                     os.close();
-                    logger.log(Level.WARNING, "Socket Output closed");
                 }
                 if (socket != null)
                 {
                     socket.close();
-                    logger.log(Level.WARNING, "Socket closed");
                 }
             }
             catch (IOException ex)
@@ -122,7 +118,14 @@ public class AuthenticationThread extends Thread
             if (authenticationService.ValidateUsername(usernameMessage.getPayload()))
             {
                 user = UserService.getInstance().GetUser(usernameMessage.getPayload());
-                user.setSession(new Session(null, socket.getRemoteSocketAddress()));
+                if (authenticationService.CheckTokenExists(user))
+                {
+                    logger.log(Level.INFO, "User " + user.getUsername() + " is already connected. Closing the connection");
+                    message = new Message(RequestPhase.AUTH, RequestType.FAIL, "This user is already connected.");
+                    messageService.SendMessage(message);
+                    break;
+                }
+                user.setSession(new Session(null, socket.getInetAddress(), socket.getPort()));
                 UserService.getInstance().ModifyUser(user);
 
                 receivedUsername = true;
@@ -132,6 +135,7 @@ public class AuthenticationThread extends Thread
                 message = new Message(RequestPhase.AUTH, RequestType.FAIL, "User does not exist");
                 messageService.SendMessage(message);
                 logger.log(Level.INFO, "User does not exist, closing the connection");
+                RemoveUserSession(user);
                 break;
             }
         }
@@ -159,6 +163,7 @@ public class AuthenticationThread extends Thread
                     {
                         message = new Message(RequestPhase.AUTH, RequestType.FAIL, "No attempts left!");
                         messageService.SendMessage(message);
+                        RemoveUserSession(user);
                         return;
                     }
                     message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your password (" + tryLeft + " guesses left):");
@@ -189,6 +194,7 @@ public class AuthenticationThread extends Thread
             logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
             Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
             messageService.SendMessage(message);
+            RemoveUserSession(user);
             future.cancel(true);
         }
 
@@ -203,4 +209,11 @@ public class AuthenticationThread extends Thread
         Message message = new Message(RequestPhase.AUTH, RequestType.SUCCESS, token);
         messageService.SendMessage(message);
     }
+
+    private void RemoveUserSession(User user) throws NullPointerException
+    {
+        user.setSession(null);
+        UserService.getInstance().ModifyUser(user);
+    }
+
 }

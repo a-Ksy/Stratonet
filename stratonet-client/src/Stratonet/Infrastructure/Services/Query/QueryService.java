@@ -65,12 +65,12 @@ public class QueryService implements IQueryService
                 }
                 else if (message.getRequestType().equals(RequestType.FAIL))
                 {
-                    logger.log(Level.INFO, "Authentication failed, closing connection");
+                    logger.log(Level.INFO, "Query failed, closing connection");
                     break;
                 }
                 else if (message.getRequestType().equals(RequestType.SUCCESS))
                 {
-                    logger.log(Level.INFO, "Successfully authenticated with the server.");
+                    logger.log(Level.INFO, "Successfully queried with the server.");
                     System.out.println(token);
                 }
             }
