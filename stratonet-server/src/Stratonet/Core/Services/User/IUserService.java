@@ -12,5 +12,5 @@ public interface IUserService
 
     User GetUser(String username);
 
-    
+    void ResetUserSession(User user);
 }

@@ -2,14 +2,21 @@ package Stratonet.Infrastructure.Threads.QueryThread;
 
 import Stratonet.Core.Entities.Session;
 import Stratonet.Core.Entities.User;
+import Stratonet.Core.Enums.APIType;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Message;
+import Stratonet.Core.Models.PRE;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
+import Stratonet.Core.Services.Insight.IInsightService;
 import Stratonet.Core.Services.Message.IMessageService;
+import Stratonet.Core.Services.Query.IQueryService;
+import Stratonet.Core.Services.User.IUserService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
+import Stratonet.Infrastructure.Services.Insight.InsightService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
+import Stratonet.Infrastructure.Services.Query.QueryService;
 import Stratonet.Infrastructure.Services.User.UserService;
 
 import java.io.DataInputStream;
@@ -26,13 +33,18 @@ public class QueryThread extends Thread
     private DataOutputStream os;
     private IMessageService messageService;
     private IAuthenticationService authenticationService;
+    private IQueryService queryService;
+    private IInsightService insightService;
+    private String clientToken;
 
-    private boolean receivedQuery = false;
+    private boolean receivedAPIChoice = false;
 
     public QueryThread(Socket socket)
     {
         logger = StratonetLogger.getInstance();
         this.authenticationService = new AuthenticationService();
+        this.queryService = new QueryService();
+        this.insightService = new InsightService();
         this.socket = socket;
     }
 
@@ -42,7 +54,29 @@ public class QueryThread extends Thread
         {
             InitializeIO();
 
-            ReceiveQuery();
+            APIType apiType = ReceiveAPIChoice();
+            if (!receivedAPIChoice)
+            {
+                return;
+            }
+
+            switch (apiType)
+            {
+                case INSIGHT:
+                    PRE pre = insightService.GetRandomPRE();
+                    if (pre == null)
+                    {
+                        Message message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched a PRE");
+                        messageService.SendMessage(message);
+                        logger.log(Level.INFO, "Couldn't fetched a pre, restarting the query");
+                        this.run();
+                        break;
+                    }
+                    
+
+            }
+
+            DisconnectClient();
         }
         catch (IOException ex)
         {
@@ -95,19 +129,30 @@ public class QueryThread extends Thread
         }
     }
 
-    private String ReceiveQuery() throws IOException, NullPointerException
+    private APIType ReceiveAPIChoice() throws IOException, NullPointerException
     {
-        Message message = new Message(RequestPhase.QUERY, RequestType.REQUEST, "Enter your query:");
+        Message message = new Message(RequestPhase.QUERY, RequestType.CHOICE, "Enter your API Choice (APOD or Insight):");
         messageService.SendMessage(message);
-        while(!receivedQuery)
+        while(!receivedAPIChoice)
         {
             Message queryMessage = messageService.RetrieveMessage(true);
             if (authenticationService.ValidateToken(queryMessage.getToken()))
             {
                 logger.log(Level.INFO, "Token is valid for the socket: " + socket.getRemoteSocketAddress());
-                // ToDo: Validate query
-                // ToDo: Call QueryService to convert the query.
-                receivedQuery = true;
+                clientToken = queryMessage.getToken();
+
+                if (queryService.validateAPIType(queryMessage.getPayload()))
+                {
+                    receivedAPIChoice = true;
+                    return APIType.valueOf(queryMessage.getPayload());
+                }
+                else
+                {
+                    logger.log(Level.INFO, "Provided API type is not valid");
+                    User user = UserService.getInstance().GetUserByToken(queryMessage.getToken());
+                    UserService.getInstance().ResetUserSession(user);                    
+                    break;
+                }
             }
             else
             {
@@ -117,6 +162,16 @@ public class QueryThread extends Thread
                 break;
             }
         }
-        return "DECIDE HERE";
+        return null;
+    }
+
+    private void DisconnectClient()
+    {
+        User user = UserService.getInstance().GetUserByToken(clientToken);
+        if (user != null)
+        {
+            UserService.getInstance().ResetUserSession(user);
+        }
+        logger.log(Level.INFO, "Query is finished, disconnecting the user");
     }
 }

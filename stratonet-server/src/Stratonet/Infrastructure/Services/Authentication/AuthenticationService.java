@@ -1,20 +1,13 @@
 package Stratonet.Infrastructure.Services.Authentication;
 
 import Stratonet.Core.Entities.User;
-import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Infrastructure.Services.User.UserService;
 
 public class AuthenticationService implements IAuthenticationService
 {
-    private StratonetLogger logger;
     private final String SUPER_SECRET_HASH_VALUE = "69";
     private final int TOKEN_LENGTH = 6;
-
-    public AuthenticationService()
-    {
-        logger = StratonetLogger.getInstance();
-    }
 
     @Override
     public String GenerateToken(User user)

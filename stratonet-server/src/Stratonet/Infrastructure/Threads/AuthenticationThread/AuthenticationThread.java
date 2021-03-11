@@ -135,7 +135,7 @@ public class AuthenticationThread extends Thread
                 message = new Message(RequestPhase.AUTH, RequestType.FAIL, "User does not exist");
                 messageService.SendMessage(message);
                 logger.log(Level.INFO, "User does not exist, closing the connection");
-                RemoveUserSession(user);
+                UserService.getInstance().ResetUserSession(user);
                 break;
             }
         }
@@ -163,7 +163,7 @@ public class AuthenticationThread extends Thread
                     {
                         message = new Message(RequestPhase.AUTH, RequestType.FAIL, "No attempts left!");
                         messageService.SendMessage(message);
-                        RemoveUserSession(user);
+                        UserService.getInstance().ResetUserSession(user);
                         return;
                     }
                     message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your password (" + tryLeft + " guesses left):");
@@ -194,7 +194,7 @@ public class AuthenticationThread extends Thread
             logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
             Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
             messageService.SendMessage(message);
-            RemoveUserSession(user);
+            UserService.getInstance().ResetUserSession(user);
             future.cancel(true);
         }
 
@@ -209,11 +209,4 @@ public class AuthenticationThread extends Thread
         Message message = new Message(RequestPhase.AUTH, RequestType.SUCCESS, token);
         messageService.SendMessage(message);
     }
-
-    private void RemoveUserSession(User user) throws NullPointerException
-    {
-        user.setSession(null);
-        UserService.getInstance().ModifyUser(user);
-    }
-
 }

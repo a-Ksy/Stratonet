@@ -42,4 +42,10 @@ public class UserService implements IUserService
        return UserRepository.getInstance().GetUserByUsername(username);
     }
 
+    public void ResetUserSession(User user)
+    {
+        user.setSession(null);
+        ModifyUser(user);
+    }
+
 }

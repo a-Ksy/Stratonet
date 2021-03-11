@@ -1,5 +1,6 @@
 package Stratonet.Infrastructure.Services.Query;
 
+import Stratonet.Core.Enums.APIType;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
@@ -54,11 +55,18 @@ public class QueryService implements IQueryService
         {
             if (message.getRequestPhase().equals(RequestPhase.QUERY))
             {
-                if (message.getRequestType().equals(RequestType.REQUEST))
+                if (message.getRequestType().equals(RequestType.CHOICE))
                 {
-                    System.out.println(message.getPayload());
-                    Scanner scanner = new Scanner(System.in);
-                    String input = scanner.nextLine().trim();
+                    String input = "";
+                    Scanner scanner;
+                    // If client doesn't provide a valid API name
+                    while (!validateAPIType(input))
+                    {
+                        System.out.println(message.getPayload());
+                        scanner = new Scanner(System.in);
+                        input = scanner.nextLine().trim();
+                    }
+
                     Message queryMessage = new Message(RequestPhase.QUERY, RequestType.CHALLENGE, input);
                     queryMessage.setToken(token);
                     messageService.SendMessage(queryMessage);
@@ -74,6 +82,19 @@ public class QueryService implements IQueryService
                     System.out.println(token);
                 }
             }
+        }
+    }
+
+    private boolean validateAPIType(String apiTypeAsString)
+    {
+        try
+        {
+            APIType apiType = APIType.valueOf(apiTypeAsString);
+            return true;
+        }
+        catch (IllegalArgumentException ex)
+        {
+            return false;
         }
     }
 }
