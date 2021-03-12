@@ -1,25 +1,36 @@
 package Stratonet.Infrastructure.Threads.FileThread;
 
-import Stratonet.Core.Enums.APIType;
+import Stratonet.Core.Enums.RequestPhase;
+import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
+import Stratonet.Core.Models.Message;
+import Stratonet.Core.Models.UserQuery;
+import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Message.IMessageService;
+import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 
 public class FileThread extends Thread
 {
+    private BlockingQueue<UserQuery> queue;
     private StratonetLogger logger;
     private Socket socket;
-    private FileInputStream is;
-    private FileOutputStream os;
+    private DataInputStream is;
+    private DataOutputStream os;
     private IMessageService messageService;
+    private IAuthenticationService authenticationService;
+    private boolean receivedHandshake = false;
 
-    public FileThread(Socket socket)
+    public FileThread(Socket socket, BlockingQueue<UserQuery> queue)
     {
         logger = StratonetLogger.getInstance();
+        authenticationService = new AuthenticationService();
+        this.queue = queue;
         this.socket = socket;
     }
 
@@ -28,7 +39,20 @@ public class FileThread extends Thread
         try
         {
             InitializeIO();
-            
+
+            String clientToken = HandshakeClient();
+            if (clientToken == null)
+            {
+                socket.close();
+                return;
+            }
+
+            Object userQuery = GetUserQuery(clientToken);
+            if (userQuery == null)
+            {
+                socket.close();
+                return;
+            }
         }
         catch (IOException ex)
         {
@@ -67,12 +91,13 @@ public class FileThread extends Thread
         }
     }
 
+
     private void InitializeIO() throws NullPointerException
     {
         try
         {
-            is = new FileInputStream(socket.getInputStream());
-            os = new FileOutputStream(socket.getOutputStream());
+            is = new DataInputStream(socket.getInputStream());
+            os = new DataOutputStream(socket.getOutputStream());
             messageService = new MessageService(socket, is, os);
         }
         catch (IOException ex)
@@ -80,4 +105,34 @@ public class FileThread extends Thread
             logger.log(Level.SEVERE, "Exception while opening IO stream: " + ex);
         }
     }
+
+    private String HandshakeClient() throws IOException, NullPointerException
+    {
+        Message message = new Message(RequestPhase.FILE, RequestType.REQUEST, "Identification Request");
+        messageService.SendMessage(message);
+        while (!receivedHandshake)
+        {
+            Message handshakeMessage = messageService.RetrieveMessage(true);
+            if (authenticationService.ValidateToken(handshakeMessage.getToken()))
+            {
+                receivedHandshake = true;
+                return handshakeMessage.getToken();
+            }
+        }
+        return null;
+    }
+
+    private Object GetUserQuery(String clientToken)
+    {
+        for (UserQuery uq : queue)
+        {
+            if (uq.getToken().equals(clientToken))
+            {
+                return uq.getObject();
+            }
+        }
+
+        return null;
+    }
+
 }

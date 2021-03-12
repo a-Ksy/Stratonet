@@ -1,8 +1,12 @@
 package Stratonet.Infrastructure.Services.Startup;
 
 import Stratonet.Core.Enums.ServiceType;
+import Stratonet.Core.Models.UserQuery;
 import Stratonet.Infrastructure.Data.Repositories.UserRepository.UserRepository;
 import Stratonet.Infrastructure.Services.Socket.SocketService;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class StartupService
 {
@@ -16,11 +20,11 @@ public class StartupService
 
     public StartupService()
     {
+        BlockingQueue<UserQuery> queue = new ArrayBlockingQueue<>(10);
         userRepository = UserRepository.getInstance();
-
         authService = new SocketService(AUTH_PORT, ServiceType.AUTH);
-        queryService = new SocketService(QUERY_PORT, ServiceType.QUERY);
-        fileService = new SocketService(FILE_PORT, ServiceType.FILE);
+        queryService = new SocketService(QUERY_PORT, ServiceType.QUERY, queue);
+        fileService = new SocketService(FILE_PORT, ServiceType.FILE, queue);
         authService.start();
         queryService.start();
         fileService.start();

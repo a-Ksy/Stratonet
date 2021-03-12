@@ -8,6 +8,7 @@ import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Message;
 import Stratonet.Core.Models.PRE;
+import Stratonet.Core.Models.UserQuery;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Insight.IInsightService;
 import Stratonet.Core.Services.Message.IMessageService;
@@ -24,11 +25,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 
 public class QueryThread extends Thread
 {
     private StratonetLogger logger;
+    private BlockingQueue<UserQuery> queue;
     private Socket socket;
     private DataInputStream is;
     private DataOutputStream os;
@@ -40,9 +43,10 @@ public class QueryThread extends Thread
 
     private boolean receivedAPIChoice = false;
 
-    public QueryThread(Socket socket)
+    public QueryThread(Socket socket, BlockingQueue<UserQuery> queue)
     {
         logger = StratonetLogger.getInstance();
+        this.queue = queue;
         this.authenticationService = new AuthenticationService();
         this.queryService = new QueryService();
         this.insightService = new InsightService();
@@ -58,6 +62,7 @@ public class QueryThread extends Thread
             APIType apiType = ReceiveAPIChoice();
             if (!receivedAPIChoice)
             {
+                socket.close();
                 return;
             }
 
@@ -72,7 +77,7 @@ public class QueryThread extends Thread
             }
 
             // Have a timeout before disconnecting the client
-            DisconnectClient();
+            // DisconnectClient();
         }
         catch (IOException ex)
         {
@@ -182,6 +187,7 @@ public class QueryThread extends Thread
             this.run();
             return;
         }
+        AddToQueue(pre);
         String hashedPRE = String.valueOf(ObjectToJSONStringConverter.Convert(pre).hashCode());
         Message message = new Message(RequestPhase.QUERY, RequestType.SUCCESS, hashedPRE);
         messageService.SendMessage(message);
@@ -191,5 +197,10 @@ public class QueryThread extends Thread
     {
         System.out.println("Not yed implemented");
         return;
+    }
+
+    private void AddToQueue(Object object)
+    {
+        queue.add(new UserQuery(clientToken, object));
     }
 }

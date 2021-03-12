@@ -5,6 +5,7 @@ import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Socket.ISocketService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
+import Stratonet.Infrastructure.Services.File.FileService;
 import Stratonet.Infrastructure.Services.Query.QueryService;
 
 import java.io.IOException;
@@ -47,6 +48,14 @@ public class SocketService implements ISocketService
                     QueryService queryService = new QueryService(socket);
                     queryService.RunQuery();
                     break;
+                case FILE:
+                    socket = new Socket(address, port);
+                    logger.log(Level.INFO, "FILE: Successfully connected to " + address + " on port " + port);
+
+                    FileService fileService = new FileService(socket);
+                    fileService.RunFile();
+                    break;
+
             }
         }
         catch (IOException ex)
