@@ -4,6 +4,7 @@ import Stratonet.Core.Enums.ServiceType;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Services.Socket.ISocketService;
 import Stratonet.Infrastructure.Threads.AuthenticationThread.AuthenticationThread;
+import Stratonet.Infrastructure.Threads.FileThread.FileThread;
 import Stratonet.Infrastructure.Threads.QueryThread.QueryThread;
 
 import java.io.IOException;
@@ -61,8 +62,13 @@ public class SocketService extends Thread implements ISocketService
                     QueryThread queryThread = new QueryThread(socket);
                     queryThread.start();
                     continue;
-                }
+                } else if (serviceType == ServiceType.FILE) {
+                    socket = serverSocket.accept();
+                    logger.log(Level.INFO, "FILE: A connection was established with the client: " + socket.getRemoteSocketAddress());
 
+                    FileThread fileThread = new FileThread(socket);
+                    fileThread.start();
+                }
             }
             catch (Exception ex)
             {

@@ -13,6 +13,7 @@ import Stratonet.Core.Services.Insight.IInsightService;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Query.IQueryService;
 import Stratonet.Core.Services.User.IUserService;
+import Stratonet.Infrastructure.Helpers.ObjectToJSONStringConverter;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Insight.InsightService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
@@ -62,20 +63,15 @@ public class QueryThread extends Thread
 
             switch (apiType)
             {
-                case INSIGHT:
-                    PRE pre = insightService.GetRandomPRE();
-                    if (pre == null)
-                    {
-                        Message message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched a PRE");
-                        messageService.SendMessage(message);
-                        logger.log(Level.INFO, "Couldn't fetched a pre, restarting the query");
-                        this.run();
-                        break;
-                    }
-                    
-
+                case Insight:
+                    SendInsightMessage();
+                    break;
+                case APOD:
+                    SendAPODMessage();
+                    break;
             }
 
+            // Have a timeout before disconnecting the client
             DisconnectClient();
         }
         catch (IOException ex)
@@ -173,5 +169,27 @@ public class QueryThread extends Thread
             UserService.getInstance().ResetUserSession(user);
         }
         logger.log(Level.INFO, "Query is finished, disconnecting the user");
+    }
+
+    private void SendInsightMessage() throws IOException, NullPointerException
+    {
+        PRE pre = insightService.GetRandomPRE();
+        if (pre == null)
+        {
+            Message message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched a PRE");
+            messageService.SendMessage(message);
+            logger.log(Level.INFO, "Couldn't fetched a PRE, restarting the query");
+            this.run();
+            return;
+        }
+        String hashedPRE = String.valueOf(ObjectToJSONStringConverter.Convert(pre).hashCode());
+        Message message = new Message(RequestPhase.QUERY, RequestType.SUCCESS, hashedPRE);
+        messageService.SendMessage(message);
+    }
+
+    private void SendAPODMessage() throws IOException, NullPointerException
+    {
+        System.out.println("Not yed implemented");
+        return;
     }
 }

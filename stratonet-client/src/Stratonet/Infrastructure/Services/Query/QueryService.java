@@ -79,7 +79,7 @@ public class QueryService implements IQueryService
                 else if (message.getRequestType().equals(RequestType.SUCCESS))
                 {
                     logger.log(Level.INFO, "Successfully queried with the server.");
-                    System.out.println(token);
+                    System.out.println(message.getPayload());
                 }
             }
         }
