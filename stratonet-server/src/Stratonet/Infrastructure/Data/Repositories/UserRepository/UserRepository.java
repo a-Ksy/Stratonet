@@ -6,50 +6,40 @@ import Stratonet.Core.Repositories.UserRepository.IUserRepository;
 import Stratonet.Infrastructure.Helpers.UserParser;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
 
-public class UserRepository implements IUserRepository
-{
-    private StratonetLogger logger;
+public class UserRepository implements IUserRepository {
     private static UserRepository userRepository;
+    private StratonetLogger logger;
     private UserParser userParser;
     private ArrayList<User> users;
 
-    private UserRepository()
-    {
+    private UserRepository() {
         logger = StratonetLogger.getInstance();
         userParser = new UserParser();
         InitializeRepository();
     }
 
-    public static UserRepository getInstance()
-    {
-        if (userRepository == null)
-        {
+    public static UserRepository getInstance() {
+        if (userRepository == null) {
             userRepository = new UserRepository();
         }
 
         return userRepository;
     }
 
-    public void InitializeRepository()
-    {
+    public void InitializeRepository() {
         users = userParser.ParseUsersFromFile();
     }
 
     @Override
-    public ArrayList<User> GetUsers()
-    {
+    public ArrayList<User> GetUsers() {
         return users;
     }
 
     @Override
-    public void ModifyUser(User user)
-    {
-        for (User u : users)
-        {
-            if (user.username == u.username)
-            {
+    public void ModifyUser(User user) {
+        for (User u : users) {
+            if (user.username == u.username) {
                 u = user;
             }
         }
@@ -57,13 +47,22 @@ public class UserRepository implements IUserRepository
 
     @Override
     public User GetUserByUsername(String username) {
-        for (User u : users)
-        {
-            if (u.username.equals(username))
-            {
+        for (User u : users) {
+            if (u.username.equals(username)) {
                 return u;
             }
         }
         return null;
     }
+
+    @Override
+    public User GetUserByToken(String token) {
+        for (User u : users) {
+            if (u.getSession().getToken().equals(token)) {
+                return u;
+            }
+        }
+        return null;
+    }
+
 }

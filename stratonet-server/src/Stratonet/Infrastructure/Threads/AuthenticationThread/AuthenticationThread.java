@@ -19,8 +19,7 @@ import java.net.Socket;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
-public class AuthenticationThread extends Thread
-{
+public class AuthenticationThread extends Thread {
     private StratonetLogger logger;
     private Socket socket;
     private DataInputStream is;
@@ -32,141 +31,110 @@ public class AuthenticationThread extends Thread
     private boolean receivedPassword = false;
     private int tryLeft = 3;
 
-    public AuthenticationThread(Socket socket)
-    {
+    public AuthenticationThread(Socket socket) {
         logger = StratonetLogger.getInstance();
         authenticationService = new AuthenticationService();
         this.socket = socket;
     }
 
-    public void run()
-    {
-        try
-        {
+    public void run() {
+        try {
             InitializeIO();
 
             User user = ReceiveUsernameAndFindUser();
-            if (!receivedUsername)
-            {
+
+            if (!receivedUsername) {
                 return;
             }
-
             ReceivePassword(user);
-            if (!receivedPassword)
-            {
+            if (!receivedPassword) {
                 return;
             }
 
             SendToken(user);
-
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while IO operation: " + ex);
-        }
-        catch (NullPointerException ex)
-        {
+        } catch (NullPointerException ex) {
             logger.log(Level.SEVERE, "Exception while IO operation, thread closed: " + ex);
-        }
-        finally
-        {
-            try
-            {
+        } finally {
+            try {
                 logger.log(Level.INFO, "Closing the connection with the socket: " + socket.getRemoteSocketAddress());
-                if (is != null)
-                {
+                if (is != null) {
                     is.close();
-                    logger.log(Level.WARNING, "Socket Input closed");
                 }
-
-                if (os != null)
-                {
+                if (os != null) {
                     os.close();
-                    logger.log(Level.WARNING, "Socket Output closed");
                 }
-                if (socket != null)
-                {
+                if (socket != null) {
                     socket.close();
-                    logger.log(Level.WARNING, "Socket closed");
                 }
-            }
-            catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 logger.log(Level.SEVERE, "Exception while closing the socket connection: " + ex);
             }
         }
     }
 
-    private void InitializeIO() throws NullPointerException
-    {
-        try
-        {
+    private void InitializeIO() throws NullPointerException {
+        try {
             is = new DataInputStream(socket.getInputStream());
             os = new DataOutputStream(socket.getOutputStream());
             messageService = new MessageService(socket, is, os);
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while opening IO stream: " + ex);
         }
     }
 
-    private User ReceiveUsernameAndFindUser() throws IOException, NullPointerException
-    {
+    private User ReceiveUsernameAndFindUser() throws IOException, NullPointerException {
         Message message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your username:");
         messageService.SendMessage(message);
         User user = null;
-        while(!receivedUsername)
-        {
-            Message usernameMessage = messageService.RetrieveMessage();
+        while (!receivedUsername) {
+            Message usernameMessage = messageService.RetrieveMessage(false);
 
-            if (authenticationService.ValidateUsername(usernameMessage.payload))
-            {
-                user = UserService.getInstance().GetUser(usernameMessage.payload);
-                user.setSession(new Session(null, socket.getRemoteSocketAddress()));
+            if (authenticationService.ValidateUsername(usernameMessage.getPayload())) {
+                user = UserService.getInstance().GetUser(usernameMessage.getPayload());
+                if (authenticationService.CheckTokenExists(user)) {
+                    logger.log(Level.INFO, "User " + user.getUsername() + " is already connected. Closing the connection");
+                    message = new Message(RequestPhase.AUTH, RequestType.FAIL, "This user is already connected.");
+                    messageService.SendMessage(message);
+                    break;
+                }
+                user.setSession(new Session(null, socket.getInetAddress(), socket.getPort()));
                 UserService.getInstance().ModifyUser(user);
 
                 receivedUsername = true;
-            }
-            else
-            {
+            } else {
                 message = new Message(RequestPhase.AUTH, RequestType.FAIL, "User does not exist");
                 messageService.SendMessage(message);
                 logger.log(Level.INFO, "User does not exist, closing the connection");
+                UserService.getInstance().ResetUserSession(user);
                 break;
             }
         }
         return user;
     }
 
-    private void ReceivePassword(User user) throws IOException, NullPointerException
-    {
-        Message message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your password:" );
+    private void ReceivePassword(User user) throws IOException, NullPointerException {
+        Message message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your password:");
         messageService.SendMessage(message);
 
-        while(!receivedPassword)
-        {
+        while (!receivedPassword) {
             Message passwordMessage = RetrieveMessageAndValidateTimeout(user);
-            if (passwordMessage == null)
-            {
+            if (passwordMessage == null) {
                 return;
             }
-            if (passwordMessage != null && passwordMessage.requestType.equals(RequestType.CHALLENGE))
-            {
-                if (passwordMessage.payload == null || !authenticationService.ValidatePassword(user, passwordMessage.payload))
-                {
+            if (passwordMessage != null && passwordMessage.getRequestType().equals(RequestType.CHALLENGE)) {
+                if (passwordMessage.getPayload() == null || !authenticationService.ValidatePassword(user, passwordMessage.getPayload())) {
                     tryLeft -= 1;
-                    if (tryLeft == 0)
-                    {
+                    if (tryLeft == 0) {
                         message = new Message(RequestPhase.AUTH, RequestType.FAIL, "No attempts left!");
                         messageService.SendMessage(message);
+                        UserService.getInstance().ResetUserSession(user);
                         return;
                     }
                     message = new Message(RequestPhase.AUTH, RequestType.REQUEST, "Enter your password (" + tryLeft + " guesses left):");
                     messageService.SendMessage(message);
-                }
-                else
-                {
+                } else {
                     receivedPassword = true;
                     logger.log(Level.INFO, "User " + user.getUsername() + " has successfully authenticated.");
                 }
@@ -174,31 +142,29 @@ public class AuthenticationThread extends Thread
         }
     }
 
-    private Message RetrieveMessageAndValidateTimeout(User user) throws IOException
-    {
+    private Message RetrieveMessageAndValidateTimeout(User user) throws IOException {
         ExecutorService executor = Executors.newCachedThreadPool();
         Callable<Message> task = new Callable<Message>() {
             public Message call() throws IOException {
-                return messageService.RetrieveMessage();
+                return messageService.RetrieveMessage(false);
             }
         };
         Future<Message> future = executor.submit(task);
         try {
             Message result = future.get(10, TimeUnit.SECONDS);
-            System.out.println(result.payload);
             return result;
         } catch (Exception ex) {
             logger.log(Level.INFO, "User " + user.getUsername() + " failed to authenticate on time.");
             Message message = new Message(RequestPhase.AUTH, RequestType.FAIL, "Disconnected from the server for no respond.");
             messageService.SendMessage(message);
+            UserService.getInstance().ResetUserSession(user);
             future.cancel(true);
         }
 
         return null;
     }
 
-    private void SendToken(User user) throws IOException, NullPointerException
-    {
+    private void SendToken(User user) throws IOException, NullPointerException {
         String token = authenticationService.GenerateToken(user);
         user.getSession().setToken(token);
         UserService.getInstance().ModifyUser(user);

@@ -1,6 +1,5 @@
 package Stratonet.Core.Services.Socket;
 
-public interface ISocketService
-{
+public interface ISocketService {
     void Connect();
 }

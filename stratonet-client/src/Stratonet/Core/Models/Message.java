@@ -5,27 +5,50 @@ import Stratonet.Core.Enums.RequestType;
 
 import java.io.UnsupportedEncodingException;
 
-public class Message
-{
-    public RequestPhase requestPhase;
+public class Message {
+    private RequestPhase requestPhase;
 
-    public RequestType requestType;
+    private RequestType requestType;
 
-    public int size;
+    private int size;
 
-    public String payload;
+    private String payload;
 
-    public Message() {};
-    public Message(RequestPhase requestPhase, RequestType requestType, String payload)
-    {
+    private byte[] payloadAsByteArray;
+
+    private String token;
+
+    public Message() {
+    }
+
+    public Message(RequestPhase requestPhase, RequestType requestType, String payload) {
         this.requestPhase = requestPhase;
         this.requestType = requestType;
         this.payload = payload.trim();
-        try
-        {
+        this.token = null;
+        try {
             this.size = payload.getBytes("UTF-8").length + 2;
+        } catch (UnsupportedEncodingException ex) {
         }
-        catch (UnsupportedEncodingException ex) {}
+    }
+
+    public Message(RequestPhase requestPhase, RequestType requestType, byte[] payloadAsByteArray) {
+        this.requestPhase = requestPhase;
+        this.requestType = requestType;
+        this.payloadAsByteArray = payloadAsByteArray;
+        this.token = null;
+        this.size = payloadAsByteArray.length;
+    }
+
+    public Message(RequestPhase requestPhase, RequestType requestType, String payload, String token) {
+        this.requestPhase = requestPhase;
+        this.requestType = requestType;
+        this.payload = payload.trim();
+        this.token = token;
+        try {
+            this.size = payload.getBytes("UTF-8").length + 2;
+        } catch (UnsupportedEncodingException ex) {
+        }
     }
 
     public RequestPhase getRequestPhase() {
@@ -58,5 +81,21 @@ public class Message
 
     public void setPayload(String payload) {
         this.payload = payload;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public byte[] getPayloadAsByteArray() {
+        return payloadAsByteArray;
+    }
+
+    public void setPayloadAsByteArray(byte[] payloadAsByteArray) {
+        this.payloadAsByteArray = payloadAsByteArray;
     }
 }
