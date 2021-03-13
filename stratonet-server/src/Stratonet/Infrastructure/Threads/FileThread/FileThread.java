@@ -143,6 +143,7 @@ public class FileThread extends Thread
         {
             if (uq.getToken().equals(clientToken))
             {
+                queue.remove(uq);
                 return uq;
             }
         }

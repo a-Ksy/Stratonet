@@ -221,8 +221,8 @@ public class QueryThread extends Thread
                 date = dateMessage.getPayload();
             }
         }
-        //APODResponse apodResponse = apodService.getAPODImage(date);
-        APODResponse apodResponse = null;
+        APODResponse apodResponse = apodService.getAPODImage(date);
+        // APODResponse apodResponse = null;
         if (apodResponse == null)
         {
             message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched an image");

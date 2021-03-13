@@ -31,6 +31,7 @@ public class FileService implements IFileService
     private IMessageService messageService;
     private ISaveService saveService;
     private String token;
+    public static boolean fileSuccessful = true;
 
     public FileService(Socket socket)
     {
@@ -72,21 +73,28 @@ public class FileService implements IFileService
                             queryMessage.setToken(token);
                             messageService.SendMessage(queryMessage);
                         }
-                        else if (message.getRequestType().equals(RequestType.FAIL))
-                        {
-                            logger.log(Level.INFO, "File transmission failed, closing connection");
-                            break;
-                        }
                         else if (message.getRequestType().equals(RequestType.SUCCESS))
                         {
                             logger.log(Level.INFO, "Successfully received the file from the server.");
 
                             PRE pre = StringToPREConverter.Convert(message.getPayload());
+                            if (pre == null)
+                            {
+                                logger.log(Level.INFO, "Received file is corrupted, restarting the query.");
+                                fileSuccessful = false;
+                                break;
+                            }
 
                             if(HashValidator.ValidateJSONHash(QueryService.hashValue, pre))
                             {
                                 String fileName = FileNameGenerator.Generate("json");
                                 saveService.SaveObjectAsJSON(pre, fileName);
+                                fileSuccessful = true;
+                            }
+                            else
+                            {
+                                logger.log(Level.INFO, "Received file and hash does not match, restarting the query.");
+                                fileSuccessful = false;
                             }
                             break;
                         }
@@ -103,20 +111,26 @@ public class FileService implements IFileService
                             queryMessage.setToken(token);
                             messageService.SendMessage(queryMessage);
                         }
-                        else if (message.getRequestType().equals(RequestType.FAIL))
-                        {
-                            logger.log(Level.INFO, "File transmission failed, closing connection");
-                            break;
-                        }
                         else if (message.getRequestType().equals(RequestType.SUCCESS))
                         {
                             logger.log(Level.INFO, "Successfully received the file from the server.");
                             String fileName = FileNameGenerator.Generate("jpg");
-                            saveService.SaveImageFromByteArray(message.getPayloadAsByteArray(), fileName);
+                            boolean isSaved = saveService.SaveImageFromByteArray(message.getPayloadAsByteArray(), fileName);
+
+                            if (!isSaved)
+                            {
+                                logger.log(Level.INFO, "Received file is corrupted, restarting the query.");
+                                fileSuccessful = false;
+                                break;
+                            }
                             if (!HashValidator.ValidateImageHash(QueryService.hashValue, fileName))
                             {
                                 saveService.DeleteImage(fileName);
+                                logger.log(Level.INFO, "Received file and hash does not match, restarting the query.");
+                                fileSuccessful = false;
+                                break;
                             }
+                            fileSuccessful = true;
                             break;
                         }
                     }

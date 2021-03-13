@@ -33,7 +33,7 @@ public class SaveService implements ISaveService
         }
     }
 
-    public void SaveImageFromByteArray(byte[] response, String fileName)
+    public boolean SaveImageFromByteArray(byte[] response, String fileName)
     {
         try
         {
@@ -41,10 +41,12 @@ public class SaveService implements ISaveService
             fos.write(response);
             fos.close();
             logger.log(Level.INFO, "Successfully saved the Image file");
+            return true;
         }
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Exception while saving Image file");
+            return false;
         }
     }
 
