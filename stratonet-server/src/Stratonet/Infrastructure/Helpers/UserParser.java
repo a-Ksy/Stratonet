@@ -12,32 +12,24 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-public class UserParser
-{
+public class UserParser {
     private StratonetLogger logger;
 
-    public UserParser()
-    {
+    public UserParser() {
         logger = StratonetLogger.getInstance();
     }
 
-    public ArrayList<User> ParseUsersFromFile()
-    {
+    public ArrayList<User> ParseUsersFromFile() {
         ArrayList<User> userList = new ArrayList();
-        try
-        {
+        try {
             ObjectMapper mapper = new ObjectMapper();
             File jsonFile = Paths.get("save/users.json").toFile();
 
             Users users = mapper.readValue(jsonFile, Users.class);
             userList = users.users;
-        }
-        catch (FileNotFoundException ex)
-        {
+        } catch (FileNotFoundException ex) {
             logger.log(Level.SEVERE, "Exception while reading JSON file: " + ex);
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while reading JSON file: " + ex);
         }
         return userList;

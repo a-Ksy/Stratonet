@@ -5,8 +5,7 @@ import Stratonet.Core.Enums.RequestType;
 
 import java.io.UnsupportedEncodingException;
 
-public class Message
-{
+public class Message {
     private RequestPhase requestPhase;
 
     private RequestType requestType;
@@ -19,23 +18,21 @@ public class Message
 
     private String token;
 
-    public Message(){}
+    public Message() {
+    }
 
-    public Message(RequestPhase requestPhase, RequestType requestType, String payload)
-    {
+    public Message(RequestPhase requestPhase, RequestType requestType, String payload) {
         this.requestPhase = requestPhase;
         this.requestType = requestType;
         this.payload = payload.trim();
         this.token = null;
-        try
-        {
+        try {
             this.size = payload.getBytes("UTF-8").length + 2;
+        } catch (UnsupportedEncodingException ex) {
         }
-        catch (UnsupportedEncodingException ex) {}
     }
 
-    public Message(RequestPhase requestPhase, RequestType requestType, byte[] payloadAsByteArray)
-    {
+    public Message(RequestPhase requestPhase, RequestType requestType, byte[] payloadAsByteArray) {
         this.requestPhase = requestPhase;
         this.requestType = requestType;
         this.payloadAsByteArray = payloadAsByteArray;
@@ -44,17 +41,15 @@ public class Message
     }
 
 
-    public Message(RequestPhase requestPhase, RequestType requestType, String payload, String token)
-    {
+    public Message(RequestPhase requestPhase, RequestType requestType, String payload, String token) {
         this.requestPhase = requestPhase;
         this.requestType = requestType;
         this.payload = payload.trim();
         this.token = token;
-        try
-        {
+        try {
             this.size = payload.getBytes("UTF-8").length + 2;
+        } catch (UnsupportedEncodingException ex) {
         }
-        catch (UnsupportedEncodingException ex) {}
     }
 
     public RequestPhase getRequestPhase() {

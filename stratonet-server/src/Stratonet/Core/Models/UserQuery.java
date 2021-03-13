@@ -3,16 +3,14 @@ package Stratonet.Core.Models;
 import Stratonet.Core.Entities.User;
 import Stratonet.Core.Enums.APIType;
 
-public class UserQuery
-{
+public class UserQuery {
     private String token;
 
     private Object object;
 
     private APIType apiType;
 
-    public UserQuery(String token, Object object, APIType apiType)
-    {
+    public UserQuery(String token, Object object, APIType apiType) {
         this.token = token;
         this.object = object;
         this.apiType = apiType;

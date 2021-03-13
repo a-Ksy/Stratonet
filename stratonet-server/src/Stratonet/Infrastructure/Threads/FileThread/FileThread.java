@@ -20,8 +20,7 @@ import java.net.Socket;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
-public class FileThread extends Thread
-{
+public class FileThread extends Thread {
     private BlockingQueue<UserQuery> queue;
     private StratonetLogger logger;
     private Socket socket;
@@ -32,36 +31,30 @@ public class FileThread extends Thread
     private boolean receivedHandshake = false;
     private String clientToken;
 
-    public FileThread(Socket socket, BlockingQueue<UserQuery> queue)
-    {
+    public FileThread(Socket socket, BlockingQueue<UserQuery> queue) {
         logger = StratonetLogger.getInstance();
         authenticationService = new AuthenticationService();
         this.queue = queue;
         this.socket = socket;
     }
 
-    public void run()
-    {
-        try
-        {
+    public void run() {
+        try {
             InitializeIO();
 
             clientToken = HandshakeClient();
-            if (clientToken == null)
-            {
+            if (clientToken == null) {
                 socket.close();
                 return;
             }
 
             UserQuery userQuery = GetUserQuery(clientToken);
-            if (userQuery == null)
-            {
+            if (userQuery == null) {
                 socket.close();
                 return;
             }
 
-            switch(userQuery.getApiType())
-            {
+            switch (userQuery.getApiType()) {
                 case APOD:
                     SendAPODMessage(userQuery.getObject());
                     break;
@@ -73,68 +66,49 @@ public class FileThread extends Thread
 
             AskForRestart();
 
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while IO operation: " + ex);
-        }
-        catch (NullPointerException ex)
-        {
+        } catch (NullPointerException ex) {
             logger.log(Level.SEVERE, "Exception while IO operation, thread closed: " + ex);
-        }
-        finally
-        {
-            try
-            {
+        } finally {
+            try {
                 logger.log(Level.INFO, "Closing the connection with the socket: " + socket.getRemoteSocketAddress());
-                if (is != null)
-                {
+                if (is != null) {
                     is.close();
                     logger.log(Level.WARNING, "Socket Input closed");
                 }
 
-                if (os != null)
-                {
+                if (os != null) {
                     os.close();
                     logger.log(Level.WARNING, "Socket Output closed");
                 }
-                if (socket != null)
-                {
+                if (socket != null) {
                     socket.close();
                     logger.log(Level.WARNING, "Socket closed");
                 }
-            }
-            catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 logger.log(Level.SEVERE, "Exception while closing the socket connection: " + ex);
             }
         }
     }
 
 
-    private void InitializeIO() throws NullPointerException
-    {
-        try
-        {
+    private void InitializeIO() throws NullPointerException {
+        try {
             is = new DataInputStream(socket.getInputStream());
             os = new DataOutputStream(socket.getOutputStream());
             messageService = new MessageService(socket, is, os);
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while opening IO stream: " + ex);
         }
     }
 
-    private String HandshakeClient() throws IOException, NullPointerException
-    {
+    private String HandshakeClient() throws IOException, NullPointerException {
         Message message = new Message(RequestPhase.FILE, RequestType.REQUEST, "Identification Request");
         messageService.SendMessage(message);
-        while (!receivedHandshake)
-        {
+        while (!receivedHandshake) {
             Message handshakeMessage = messageService.RetrieveMessage(true);
-            if (authenticationService.ValidateToken(handshakeMessage.getToken()))
-            {
+            if (authenticationService.ValidateToken(handshakeMessage.getToken())) {
                 receivedHandshake = true;
                 return handshakeMessage.getToken();
             }
@@ -142,12 +116,9 @@ public class FileThread extends Thread
         return null;
     }
 
-    private UserQuery GetUserQuery(String clientToken)
-    {
-        for (UserQuery uq : queue)
-        {
-            if (uq.getToken().equals(clientToken))
-            {
+    private UserQuery GetUserQuery(String clientToken) {
+        for (UserQuery uq : queue) {
+            if (uq.getToken().equals(clientToken)) {
                 queue.remove(uq);
                 return uq;
             }
@@ -156,40 +127,33 @@ public class FileThread extends Thread
         return null;
     }
 
-    private void SendInsightMessage(Object object) throws IOException, NullPointerException
-    {
+    private void SendInsightMessage(Object object) throws IOException, NullPointerException {
         String json = ObjectToJSONStringConverter.Convert(object);
         Message insightMessage = new Message(RequestPhase.FILE, RequestType.SUCCESS, json);
         messageService.SendMessage(insightMessage);
     }
 
-    private void SendAPODMessage(Object object) throws IOException, NullPointerException
-    {
+    private void SendAPODMessage(Object object) throws IOException, NullPointerException {
         byte[] imageAsByteArray = (byte[]) object;
         Message apodMessage = new Message(RequestPhase.FILE, RequestType.SUCCESS, imageAsByteArray);
         messageService.SendMessage(apodMessage);
     }
 
-    private void AskForRestart() throws IOException, NullPointerException
-    {
+    private void AskForRestart() throws IOException, NullPointerException {
         Message requestMessage = new Message(RequestPhase.FILE, RequestType.REQUEST, "Would you like to start another query? (Y or N)");
         messageService.SendMessage(requestMessage);
 
-        while (true)
-        {
+        while (true) {
             Message restartMessage = RetrieveMessageAndValidateTimeout();
-            if (restartMessage == null)
-            {
-                User user =  UserService.getInstance().GetUserByToken(clientToken);
+            if (restartMessage == null) {
+                User user = UserService.getInstance().GetUserByToken(clientToken);
                 UserService.getInstance().ResetUserSession(user);
                 break;
             }
 
-            if (restartMessage.getPayload() != null)
-            {
-                if (restartMessage.getPayload().equals("N"))
-                {
-                    User user =  UserService.getInstance().GetUserByToken(clientToken);
+            if (restartMessage.getPayload() != null) {
+                if (restartMessage.getPayload().equals("N")) {
+                    User user = UserService.getInstance().GetUserByToken(clientToken);
                     UserService.getInstance().ResetUserSession(user);
                 }
                 break;
@@ -197,8 +161,7 @@ public class FileThread extends Thread
         }
     }
 
-    private Message RetrieveMessageAndValidateTimeout() throws IOException
-    {
+    private Message RetrieveMessageAndValidateTimeout() throws IOException {
         ExecutorService executor = Executors.newCachedThreadPool();
         Callable<Message> task = new Callable<Message>() {
             public Message call() throws IOException {
@@ -210,7 +173,7 @@ public class FileThread extends Thread
             Message result = future.get(10, TimeUnit.SECONDS);
             return result;
         } catch (Exception ex) {
-            logger.log(Level.INFO, "User failed to request a restart on time");
+            logger.log(Level.INFO, "User failed to request a restart on time " + ex);
             future.cancel(true);
         }
 

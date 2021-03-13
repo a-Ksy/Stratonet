@@ -23,6 +23,8 @@ import java.net.Socket;
 import java.util.Scanner;
 import java.util.logging.Level;
 
+import static java.lang.Thread.sleep;
+
 public class FileService implements IFileService
 {
     private StratonetLogger logger;
@@ -154,8 +156,9 @@ public class FileService implements IFileService
             }
             
             Message requestRestartMessage = new Message(RequestPhase.FILE, RequestType.CHALLENGE, input);
+            requestRestartMessage.setToken(token);
             messageService.SendMessage(requestRestartMessage);
-            
+
             if (input.equals("Y"))
             {
                 fileSuccessful = false;
@@ -163,6 +166,7 @@ public class FileService implements IFileService
             }
             
             fileSuccessful = true;
+
             break;
         }
     }

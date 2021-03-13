@@ -12,27 +12,22 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.logging.Level;
 
-public class APODService implements IAPODService
-{
-
-    private StratonetLogger logger;
-    private HttpClient client;
+public class APODService implements IAPODService {
 
     private final String API_KEY = "8pstY7crqf5jsEGDjZugwZh9n0HpxodgKMzPm19A";
     private final String APOD_ENDPOINT = "https://api.nasa.gov/planetary/apod";
+    private StratonetLogger logger;
+    private HttpClient client;
 
-    public APODService()
-    {
+    public APODService() {
         logger = StratonetLogger.getInstance();
         client = HttpClient.newHttpClient();
     }
 
-    public APODResponse getAPODImage(String date)
-    {
-        try
-        {
+    public APODResponse getAPODImage(String date) {
+        try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(APOD_ENDPOINT + "?api_key=" + API_KEY +"&date=" + date))
+                    .uri(new URI(APOD_ENDPOINT + "?api_key=" + API_KEY + "&date=" + date))
                     .GET()
                     .header("Accept", "application/json")
                     .build();
@@ -45,9 +40,7 @@ public class APODService implements IAPODService
             APODResponse apodResponse = objectMapper.readValue(response.body(), APODResponse.class);
 
             return apodResponse;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.getInstance().log(Level.WARNING, "Exception while fetching APOD API");
         }
 

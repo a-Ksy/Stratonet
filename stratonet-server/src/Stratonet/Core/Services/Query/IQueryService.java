@@ -1,6 +1,5 @@
 package Stratonet.Core.Services.Query;
 
-public interface IQueryService
-{
+public interface IQueryService {
     boolean validateAPIType(String apiTypeAsString);
 }

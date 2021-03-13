@@ -17,25 +17,20 @@ import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.logging.Level;
 
-public class InsightService implements IInsightService
-{
+public class InsightService implements IInsightService {
+    private final String INSIGHT_API_ENDPOINT = "https://api.nasa.gov/insight_weather/?api_key=DEMO_KEY&feedtype=json&ver=1.0";
     private StratonetLogger logger;
     private HttpClient client;
     private StringToMapConverter mapper;
 
-    private final String INSIGHT_API_ENDPOINT = "https://api.nasa.gov/insight_weather/?api_key=DEMO_KEY&feedtype=json&ver=1.0";
-
-    public InsightService()
-    {
+    public InsightService() {
         logger = StratonetLogger.getInstance();
         client = HttpClient.newHttpClient();
         mapper = new StringToMapConverter();
     }
 
-    public PRE GetRandomPRE()
-    {
-        try
-        {
+    public PRE GetRandomPRE() {
+        try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(INSIGHT_API_ENDPOINT))
                     .GET()
@@ -49,18 +44,16 @@ public class InsightService implements IInsightService
             ObjectMapper mapper = new ObjectMapper(factory);
             JsonNode rootNode = mapper.readTree(response.body());
 
-            Iterator<Map.Entry<String,JsonNode>> fieldsIterator = rootNode.fields();
+            Iterator<Map.Entry<String, JsonNode>> fieldsIterator = rootNode.fields();
             List<String> solList = new ArrayList<>();
             int solCount = 0;
-            while (fieldsIterator.hasNext())
-            {
+            while (fieldsIterator.hasNext()) {
                 Map.Entry<String, JsonNode> field = fieldsIterator.next();
                 try {
                     Integer.parseInt(field.getKey());
                     solList.add(field.getValue().toString());
                     solCount++;
-                } catch (NumberFormatException ex)
-                {
+                } catch (NumberFormatException ex) {
                     break;
                 }
             }
@@ -77,9 +70,7 @@ public class InsightService implements IInsightService
 
             return sol.PRE;
 
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.SEVERE, "Exception while fetching Insight API");
         }
 

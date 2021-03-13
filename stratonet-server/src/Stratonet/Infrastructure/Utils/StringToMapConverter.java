@@ -9,16 +9,12 @@ import java.util.Map;
 import java.util.concurrent.CompletionException;
 import java.util.logging.Level;
 
-public class StringToMapConverter extends ObjectMapper
-{
-    public Map<String, String> Convert(String content)
-    {
-        try
-        {
-            return this.readValue(content, new TypeReference<>(){});
-        }
-        catch (IOException ex)
-        {
+public class StringToMapConverter extends ObjectMapper {
+    public Map<String, String> Convert(String content) {
+        try {
+            return this.readValue(content, new TypeReference<>() {
+            });
+        } catch (IOException ex) {
             StratonetLogger.getInstance().log(Level.SEVERE, "Exception occured while converting content to map");
             throw new CompletionException(ex);
         }

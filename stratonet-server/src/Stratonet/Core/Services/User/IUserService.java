@@ -2,8 +2,7 @@ package Stratonet.Core.Services.User;
 
 import Stratonet.Core.Entities.User;
 
-public interface IUserService
-{
+public interface IUserService {
     User GetUserByUsername(String username);
 
     User GetUserByToken(String token);

@@ -15,60 +15,46 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 
-public class SocketService extends Thread implements ISocketService
-{
+public class SocketService extends Thread implements ISocketService {
     private StratonetLogger logger;
     private ServerSocket serverSocket;
     private ServiceType serviceType;
     private BlockingQueue<UserQuery> queue;
 
-    public SocketService(int port, ServiceType serviceType)
-    {
+    public SocketService(int port, ServiceType serviceType) {
         logger = StratonetLogger.getInstance();
         this.serviceType = serviceType;
 
-        try
-        {
+        try {
             serverSocket = new ServerSocket(port);
-            logger.log(Level.INFO, "Opened up a "+ serviceType + " server socket on: " + Inet4Address.getLocalHost() + " on port " + port);
-        }
-        catch (IOException ex)
-        {
+            logger.log(Level.INFO, "Opened up a " + serviceType + " server socket on: " + Inet4Address.getLocalHost() + " on port " + port);
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while opening a server socket: " + ex);
         }
     }
 
-    public SocketService(int port, ServiceType serviceType, BlockingQueue<UserQuery> queue)
-    {
+    public SocketService(int port, ServiceType serviceType, BlockingQueue<UserQuery> queue) {
         logger = StratonetLogger.getInstance();
         this.serviceType = serviceType;
         this.queue = queue;
 
-        try
-        {
+        try {
             serverSocket = new ServerSocket(port);
-            logger.log(Level.INFO, "Opened up a "+ serviceType + " server socket on: " + Inet4Address.getLocalHost() + " on port " + port);
-        }
-        catch (IOException ex)
-        {
+            logger.log(Level.INFO, "Opened up a " + serviceType + " server socket on: " + Inet4Address.getLocalHost() + " on port " + port);
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while opening a server socket: " + ex);
         }
     }
 
-    public void run()
-    {
+    public void run() {
         ListenAndAccept();
     }
 
-    private void ListenAndAccept()
-    {
-        while (true)
-        {
+    private void ListenAndAccept() {
+        while (true) {
             Socket socket;
-            try
-            {
-                switch(serviceType)
-                {
+            try {
+                switch (serviceType) {
 
                     case AUTH:
                         socket = serverSocket.accept();
@@ -94,9 +80,7 @@ public class SocketService extends Thread implements ISocketService
                         fileThread.start();
                         continue;
                 }
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 logger.log(Level.SEVERE, "Exception while establishing connection with the client: " + ex);
             }
         }

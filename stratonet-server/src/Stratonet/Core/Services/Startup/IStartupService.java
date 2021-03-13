@@ -1,6 +1,5 @@
 package Stratonet.Core.Services.Startup;
 
-public interface IStartupService
-{
+public interface IStartupService {
 
 }

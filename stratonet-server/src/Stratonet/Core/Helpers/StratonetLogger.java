@@ -2,13 +2,11 @@ package Stratonet.Core.Helpers;
 
 import java.util.logging.*;
 
-public class StratonetLogger
-{
-    private Logger logger;
+public class StratonetLogger {
     private static StratonetLogger stratonetLogger;
+    private Logger logger;
 
-    private StratonetLogger()
-    {
+    private StratonetLogger() {
         logger = Logger.getLogger(StratonetLogger.class.getName());
         logger.setUseParentHandlers(false);
         StratonetFormatter formatter = new StratonetFormatter();
@@ -17,27 +15,22 @@ public class StratonetLogger
         logger.addHandler(handler);
     }
 
-    public static StratonetLogger getInstance()
-    {
-        if (stratonetLogger == null)
-        {
+    public static StratonetLogger getInstance() {
+        if (stratonetLogger == null) {
             stratonetLogger = new StratonetLogger();
         }
 
         return stratonetLogger;
     }
 
-    public void log(Level level, String message)
-    {
+    public void log(Level level, String message) {
         logger.log(level, message);
     }
 
 }
 
-class StratonetFormatter extends Formatter
-{
-    public String format(LogRecord record)
-    {
+class StratonetFormatter extends Formatter {
+    public String format(LogRecord record) {
         StringBuilder builder = new StringBuilder(1000);
         builder.append("[").append(record.getLevel()).append("] - ");
         builder.append(formatMessage(record));

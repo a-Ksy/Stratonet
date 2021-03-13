@@ -12,56 +12,46 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.logging.Level;
 
-public class MessageService implements IMessageService
-{
+public class MessageService implements IMessageService {
     private StratonetLogger logger;
     private Socket socket;
     private DataInputStream is;
     private DataOutputStream os;
 
-    public MessageService(Socket socket, DataInputStream is, DataOutputStream os)
-    {
+    public MessageService(Socket socket, DataInputStream is, DataOutputStream os) {
         this.logger = StratonetLogger.getInstance();
         this.socket = socket;
         this.is = is;
         this.os = os;
     }
 
-    public void SendMessage(Message message) throws IOException
-    {
-        if (message.getToken() != null)
-        {
+    public void SendMessage(Message message) throws IOException {
+        if (message.getToken() != null) {
             os.writeInt(message.getToken().length() + 2);
             os.writeUTF(message.getToken());
         }
         os.write(message.getRequestPhase().getValue());
         os.write(message.getRequestType().getValue());
         os.writeInt(message.getSize());
-        if (message.getPayloadAsByteArray() != null)
-        {
+        if (message.getPayloadAsByteArray() != null) {
             os.write(message.getPayloadAsByteArray());
             logger.log(Level.INFO, "Sent message as a byte array to the socket: " + socket.getRemoteSocketAddress());
-        }
-        else
-        {
+        } else {
             os.writeUTF(message.getPayload());
             logger.log(Level.INFO, "Sent message: " + "\"" + message.getPayload() + "\"" + " to the socket: " + socket.getRemoteSocketAddress());
         }
     }
 
 
-    public Message RetrieveMessage(boolean hasToken) throws IOException
-    {
+    public Message RetrieveMessage(boolean hasToken) throws IOException {
         Message message = new Message();
-        if (hasToken)
-        {
+        if (hasToken) {
             int tokenSize = is.readInt();
             byte[] tokenByte = new byte[tokenSize];
             is.readFully(tokenByte, 0, tokenSize);
             String tokenWithExtraChars = new String(tokenByte);
             StringBuilder token = new StringBuilder();
-            for (int i=2; i<tokenWithExtraChars.length(); i++)
-            {
+            for (int i = 2; i < tokenWithExtraChars.length(); i++) {
                 token.append(tokenWithExtraChars.charAt(i));
             }
             message.setToken(token.toString());
@@ -75,8 +65,7 @@ public class MessageService implements IMessageService
         is.readFully(payloadByte, 0, size);
         String payloadWithExtraChars = new String(payloadByte);
         StringBuilder payload = new StringBuilder();
-        for (int i=2; i<payloadWithExtraChars.length(); i++)
-        {
+        for (int i = 2; i < payloadWithExtraChars.length(); i++) {
             payload.append(payloadWithExtraChars.charAt(i));
         }
         message.setPayload(payload.toString());

@@ -1,6 +1,5 @@
 package Stratonet.Core.Enums;
 
-public enum APIType
-{
+public enum APIType {
     APOD, Insight
 }

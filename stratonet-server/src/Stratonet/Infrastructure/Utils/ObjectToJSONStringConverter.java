@@ -6,18 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.logging.Level;
 
-public class ObjectToJSONStringConverter
-{
-    public static String Convert(Object o)
-    {
+public class ObjectToJSONStringConverter {
+    public static String Convert(Object o) {
         ObjectMapper objectMapper = new ObjectMapper();
-        try
-        {
+        try {
             String json = objectMapper.writeValueAsString(o);
             return json;
-        }
-        catch (JsonProcessingException ex)
-        {
+        } catch (JsonProcessingException ex) {
             StratonetLogger.getInstance().log(Level.WARNING, "Failed to convert object to string.");
         }
 

@@ -32,8 +32,7 @@ import java.util.logging.Level;
 import java.util.zip.Adler32;
 import java.util.zip.Checksum;
 
-public class QueryThread extends Thread
-{
+public class QueryThread extends Thread {
     private StratonetLogger logger;
     private BlockingQueue<UserQuery> queue;
     private Socket socket;
@@ -50,8 +49,7 @@ public class QueryThread extends Thread
     private boolean receivedAPIChoice = false;
     private boolean receivedDate = false;
 
-    public QueryThread(Socket socket, BlockingQueue<UserQuery> queue)
-    {
+    public QueryThread(Socket socket, BlockingQueue<UserQuery> queue) {
         logger = StratonetLogger.getInstance();
         this.queue = queue;
         this.authenticationService = new AuthenticationService();
@@ -61,21 +59,17 @@ public class QueryThread extends Thread
         this.socket = socket;
     }
 
-    public void run()
-    {
-        try
-        {
+    public void run() {
+        try {
             InitializeIO();
 
             apiType = ReceiveAPIChoice();
-            if (!receivedAPIChoice)
-            {
+            if (!receivedAPIChoice) {
                 socket.close();
                 return;
             }
 
-            switch (apiType)
-            {
+            switch (apiType) {
                 case Insight:
                     SendInsightMessage();
                     break;
@@ -84,85 +78,61 @@ public class QueryThread extends Thread
                     break;
             }
 
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while IO operation: " + ex);
-        }
-        catch (NullPointerException ex)
-        {
+        } catch (NullPointerException ex) {
             logger.log(Level.SEVERE, "Exception while IO operation, thread closed: " + ex);
-        }
-        finally
-        {
-            try
-            {
+        } finally {
+            try {
                 logger.log(Level.INFO, "Closing the connection with the socket: " + socket.getRemoteSocketAddress());
-                if (is != null)
-                {
+                if (is != null) {
                     is.close();
                     logger.log(Level.WARNING, "Socket Input closed");
                 }
 
-                if (os != null)
-                {
+                if (os != null) {
                     os.close();
                     logger.log(Level.WARNING, "Socket Output closed");
                 }
-                if (socket != null)
-                {
+                if (socket != null) {
                     socket.close();
                     logger.log(Level.WARNING, "Socket closed");
                 }
-            }
-            catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 logger.log(Level.SEVERE, "Exception while closing the socket connection: " + ex);
             }
         }
     }
 
-    private void InitializeIO() throws NullPointerException
-    {
-        try
-        {
+    private void InitializeIO() throws NullPointerException {
+        try {
             is = new DataInputStream(socket.getInputStream());
             os = new DataOutputStream(socket.getOutputStream());
             messageService = new MessageService(socket, is, os);
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while opening IO stream: " + ex);
         }
     }
 
-    private APIType ReceiveAPIChoice() throws IOException, NullPointerException
-    {
+    private APIType ReceiveAPIChoice() throws IOException, NullPointerException {
         Message message = new Message(RequestPhase.QUERY, RequestType.CHOICE, "Enter your API Choice (APOD or Insight):");
         messageService.SendMessage(message);
-        while(!receivedAPIChoice)
-        {
+        while (!receivedAPIChoice) {
             Message queryMessage = messageService.RetrieveMessage(true);
-            if (authenticationService.ValidateToken(queryMessage.getToken()))
-            {
+            if (authenticationService.ValidateToken(queryMessage.getToken())) {
                 logger.log(Level.INFO, "Token is valid for the socket: " + socket.getRemoteSocketAddress());
                 clientToken = queryMessage.getToken();
 
-                if (queryService.validateAPIType(queryMessage.getPayload()))
-                {
+                if (queryService.validateAPIType(queryMessage.getPayload())) {
                     receivedAPIChoice = true;
                     return APIType.valueOf(queryMessage.getPayload());
-                }
-                else
-                {
+                } else {
                     logger.log(Level.INFO, "Provided API type is not valid");
                     User user = UserService.getInstance().GetUserByToken(queryMessage.getToken());
-                    UserService.getInstance().ResetUserSession(user);                    
+                    UserService.getInstance().ResetUserSession(user);
                     break;
                 }
-            }
-            else
-            {
+            } else {
                 message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Token is not valid");
                 messageService.SendMessage(message);
                 logger.log(Level.INFO, "Token is not valid, closing the connection");
@@ -172,8 +142,7 @@ public class QueryThread extends Thread
         return null;
     }
 
-    private void SendInsightMessage() throws IOException, NullPointerException
-    {
+    private void SendInsightMessage() throws IOException, NullPointerException {
         // PRE pre = insightService.GetRandomPRE();
         // For debug purposes
         PRE pre = new PRE();
@@ -181,8 +150,7 @@ public class QueryThread extends Thread
         pre.ct = 1;
         pre.mn = 1;
         pre.mx = 1;
-        if (pre == null)
-        {
+        if (pre == null) {
             Message message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched a PRE");
             messageService.SendMessage(message);
             logger.log(Level.INFO, "Couldn't fetched a PRE");
@@ -190,29 +158,25 @@ public class QueryThread extends Thread
         }
         AddToQueue(pre);
         String hashedPRE = String.valueOf(ObjectToJSONStringConverter.Convert(pre).hashCode());
-        logger.log(Level.INFO, "Sent hash = " +  hashedPRE);
+        logger.log(Level.INFO, "Sent hash = " + hashedPRE);
         Message hashMessage = new Message(RequestPhase.QUERY, RequestType.SUCCESS, hashedPRE);
         messageService.SendMessage(hashMessage);
     }
 
-    private void SendAPODMessage() throws IOException, NullPointerException
-    {
+    private void SendAPODMessage() throws IOException, NullPointerException {
         String date = null;
         Message message = new Message(RequestPhase.QUERY, RequestType.REQUEST, "Provide a date in yyyy-MM-dd format:");
         messageService.SendMessage(message);
-        while (!receivedDate)
-        {
+        while (!receivedDate) {
             Message dateMessage = messageService.RetrieveMessage(true);
-            if (authenticationService.ValidateToken(dateMessage.getToken()))
-            {
+            if (authenticationService.ValidateToken(dateMessage.getToken())) {
                 receivedDate = true;
                 date = dateMessage.getPayload();
             }
         }
         APODResponse apodResponse = apodService.getAPODImage(date);
         // APODResponse apodResponse = null;
-        if (apodResponse == null)
-        {
+        if (apodResponse == null) {
             message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched an image");
             messageService.SendMessage(message);
             logger.log(Level.INFO, "Couldn't fetched an image");
@@ -224,13 +188,12 @@ public class QueryThread extends Thread
         Checksum checksum = new Adler32();
         checksum.update(imageAsByteArray, 0, imageAsByteArray.length);
         long hashedImage = checksum.getValue();
-        logger.log(Level.INFO, "Sent hash = " +  hashedImage);
+        logger.log(Level.INFO, "Sent hash = " + hashedImage);
         Message hashMessage = new Message(RequestPhase.QUERY, RequestType.SUCCESS, String.valueOf(hashedImage));
         messageService.SendMessage(hashMessage);
     }
 
-    private void AddToQueue(Object object)
-    {
+    private void AddToQueue(Object object) {
         queue.add(new UserQuery(clientToken, object, apiType));
     }
 }

@@ -2,8 +2,7 @@ package Stratonet.Core.Entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class User
-{
+public class User {
     @JsonProperty("username")
     public String username;
 
@@ -12,10 +11,10 @@ public class User
 
     public Session session = null;
 
-    public User() {}
+    public User() {
+    }
 
-    public User(String username, String password)
-    {
+    public User(String username, String password) {
         this.username = username;
         this.password = password;
     }

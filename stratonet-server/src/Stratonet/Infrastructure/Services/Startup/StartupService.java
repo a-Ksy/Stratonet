@@ -8,8 +8,7 @@ import Stratonet.Infrastructure.Services.Socket.SocketService;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class StartupService
-{
+public class StartupService {
     private final int AUTH_PORT = 4444;
     private final int QUERY_PORT = 4445;
     private final int FILE_PORT = 4446;
@@ -18,8 +17,7 @@ public class StartupService
     private SocketService fileSocketService;
     private UserRepository userRepository;
 
-    public StartupService()
-    {
+    public StartupService() {
         BlockingQueue<UserQuery> queue = new ArrayBlockingQueue<>(10);
         userRepository = UserRepository.getInstance();
 

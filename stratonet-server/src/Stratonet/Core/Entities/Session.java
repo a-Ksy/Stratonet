@@ -2,16 +2,14 @@ package Stratonet.Core.Entities;
 
 import java.net.InetAddress;
 
-public class Session
-{
+public class Session {
     private String token;
 
     private InetAddress inetAddress;
 
     private int port;
 
-    public Session(String token, InetAddress inetAddress, int port)
-    {
+    public Session(String token, InetAddress inetAddress, int port) {
         this.token = token;
         this.inetAddress = inetAddress;
         this.port = port;
