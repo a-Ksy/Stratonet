@@ -159,8 +159,7 @@ public class FileThread extends Thread
 
     private void SendAPODMessage(Object object) throws IOException, NullPointerException
     {
-        APODResponse apodResponse = (APODResponse) object;
-        byte[] imageAsByteArray = ImageToByteArrayConverter.Convert(apodResponse.url);
+        byte[] imageAsByteArray = (byte[]) object;
         Message apodMessage = new Message(RequestPhase.FILE, RequestType.SUCCESS, imageAsByteArray);
         messageService.SendMessage(apodMessage);
     }

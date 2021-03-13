@@ -38,12 +38,13 @@ public class MessageService implements IMessageService
         if (message.getPayloadAsByteArray() != null)
         {
             os.write(message.getPayloadAsByteArray());
+            logger.log(Level.INFO, "Sent message as a byte array to the socket: " + socket.getRemoteSocketAddress());
         }
         else
         {
             os.writeUTF(message.getPayload());
+            logger.log(Level.INFO, "Sent message: " + "\"" + message.getPayload() + "\"" + " to the socket: " + socket.getRemoteSocketAddress());
         }
-        logger.log(Level.INFO, "Sent message: " + "\"" + message.getPayload() + "\"" + " to the socket: " + socket.getRemoteSocketAddress());
     }
 
 

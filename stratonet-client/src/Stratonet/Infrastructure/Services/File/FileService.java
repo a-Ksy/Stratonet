@@ -85,7 +85,8 @@ public class FileService implements IFileService
 
                             if(HashValidator.ValidateJSONHash(QueryService.hashValue, pre))
                             {
-                                saveService.SaveObjectAsJSON(pre, FileNameGenerator.Generate("json"));
+                                String fileName = FileNameGenerator.Generate("json");
+                                saveService.SaveObjectAsJSON(pre, fileName);
                             }
                             break;
                         }
@@ -110,8 +111,12 @@ public class FileService implements IFileService
                         else if (message.getRequestType().equals(RequestType.SUCCESS))
                         {
                             logger.log(Level.INFO, "Successfully received the file from the server.");
-
-                            saveService.SaveImageFromByteArray(message.getPayloadAsByteArray(), FileNameGenerator.Generate("jpg"));
+                            String fileName = FileNameGenerator.Generate("jpg");
+                            saveService.SaveImageFromByteArray(message.getPayloadAsByteArray(), fileName);
+                            if (!HashValidator.ValidateImageHash(QueryService.hashValue, fileName))
+                            {
+                                saveService.DeleteImage(fileName);
+                            }
                             break;
                         }
                     }

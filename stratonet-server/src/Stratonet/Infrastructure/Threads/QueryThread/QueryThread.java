@@ -14,6 +14,7 @@ import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Insight.IInsightService;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Query.IQueryService;
+import Stratonet.Infrastructure.Utils.ImageToByteArrayConverter;
 import Stratonet.Infrastructure.Utils.ObjectToJSONStringConverter;
 import Stratonet.Infrastructure.Services.APOD.APODService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
@@ -28,6 +29,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
+import java.util.zip.Adler32;
+import java.util.zip.Checksum;
 
 public class QueryThread extends Thread
 {
@@ -200,8 +203,9 @@ public class QueryThread extends Thread
         }
         AddToQueue(pre);
         String hashedPRE = String.valueOf(ObjectToJSONStringConverter.Convert(pre).hashCode());
-        Message message = new Message(RequestPhase.QUERY, RequestType.SUCCESS, hashedPRE);
-        messageService.SendMessage(message);
+        logger.log(Level.INFO, "Sent hash = " +  hashedPRE);
+        Message hashMessage = new Message(RequestPhase.QUERY, RequestType.SUCCESS, hashedPRE);
+        messageService.SendMessage(hashMessage);
     }
 
     private void SendAPODMessage() throws IOException, NullPointerException
@@ -219,9 +223,15 @@ public class QueryThread extends Thread
             }
         }
         APODResponse apodResponse = apodService.getAPODImage(date);
-        AddToQueue(apodResponse);
+        byte[] imageAsByteArray = ImageToByteArrayConverter.Convert(apodResponse.url);
+        AddToQueue(imageAsByteArray);
         // ToDo: Hash the image and send the hash to the client
-
+        Checksum checksum = new Adler32();
+        checksum.update(imageAsByteArray, 0, imageAsByteArray.length);
+        long hashedImage = checksum.getValue();
+        logger.log(Level.INFO, "Sent hash = " +  hashedImage);
+        Message hashMessage = new Message(RequestPhase.QUERY, RequestType.SUCCESS, String.valueOf(hashedImage));
+        messageService.SendMessage(hashMessage);
     }
 
     private void AddToQueue(Object object)

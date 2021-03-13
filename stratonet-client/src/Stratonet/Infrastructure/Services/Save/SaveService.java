@@ -33,11 +33,11 @@ public class SaveService implements ISaveService
         }
     }
 
-    public void SaveImageFromByteArray(byte[] response, String filename)
+    public void SaveImageFromByteArray(byte[] response, String fileName)
     {
         try
         {
-            FileOutputStream fos = new FileOutputStream("save/" + filename);
+            FileOutputStream fos = new FileOutputStream("save/" + fileName);
             fos.write(response);
             fos.close();
             logger.log(Level.INFO, "Successfully saved the Image file");
@@ -46,5 +46,11 @@ public class SaveService implements ISaveService
         {
             logger.log(Level.WARNING, "Exception while saving Image file");
         }
+    }
+
+    public void DeleteImage(String fileName)
+    {
+        File image = new File("save/" + fileName);
+        image.delete();
     }
 }

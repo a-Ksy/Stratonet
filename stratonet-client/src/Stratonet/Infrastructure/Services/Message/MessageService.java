@@ -73,6 +73,7 @@ public class MessageService implements IMessageService
             else
             {
                 message.setPayloadAsByteArray(payloadByte);
+                logger.log(Level.INFO, "Received message as a byte array");
             }
 
         }
