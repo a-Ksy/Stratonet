@@ -3,13 +3,13 @@ package Stratonet.Infrastructure.Services.Query;
 import Stratonet.Core.Enums.APIType;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
-import Stratonet.Infrastructure.Utils.DateValidator;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Message;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Query.IQueryService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
+import Stratonet.Infrastructure.Utils.DateValidator;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

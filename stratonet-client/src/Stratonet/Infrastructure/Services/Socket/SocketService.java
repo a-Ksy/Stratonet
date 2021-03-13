@@ -2,7 +2,6 @@ package Stratonet.Infrastructure.Services.Socket;
 
 import Stratonet.Core.Enums.ServiceType;
 import Stratonet.Core.Helpers.StratonetLogger;
-import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Socket.ISocketService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.File.FileService;
