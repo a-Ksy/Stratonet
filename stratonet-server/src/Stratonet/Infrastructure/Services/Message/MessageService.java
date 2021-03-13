@@ -25,6 +25,7 @@ public class MessageService implements IMessageService {
         this.os = os;
     }
 
+    @Override
     public void SendMessage(Message message) throws IOException {
         if (message.getToken() != null) {
             os.writeInt(message.getToken().length() + 2);
@@ -42,7 +43,7 @@ public class MessageService implements IMessageService {
         }
     }
 
-
+    @Override
     public Message RetrieveMessage(boolean hasToken) throws IOException {
         Message message = new Message();
         if (hasToken) {

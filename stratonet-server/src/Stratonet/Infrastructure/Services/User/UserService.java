@@ -18,22 +18,27 @@ public class UserService implements IUserService {
         return userService;
     }
 
+    @Override
     public User GetUserByUsername(String username) {
         return UserRepository.getInstance().GetUserByUsername(username);
     }
 
+    @Override
     public User GetUserByToken(String token) {
         return UserRepository.getInstance().GetUserByToken(token);
     }
 
+    @Override
     public void ModifyUser(User user) {
         UserRepository.getInstance().ModifyUser(user);
     }
 
+    @Override
     public User GetUser(String username) {
         return UserRepository.getInstance().GetUserByUsername(username);
     }
 
+    @Override
     public void ResetUserSession(User user) {
         user.setSession(null);
         ModifyUser(user);

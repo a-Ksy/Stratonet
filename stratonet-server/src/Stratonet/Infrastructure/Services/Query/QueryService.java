@@ -4,6 +4,7 @@ import Stratonet.Core.Enums.APIType;
 import Stratonet.Core.Services.Query.IQueryService;
 
 public class QueryService implements IQueryService {
+    @Override
     public boolean validateAPIType(String apiTypeAsString) {
         try {
             APIType apiType = APIType.valueOf(apiTypeAsString);
