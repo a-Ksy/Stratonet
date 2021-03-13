@@ -7,6 +7,7 @@ import Stratonet.Core.Models.Message;
 import Stratonet.Core.Models.UserQuery;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Message.IMessageService;
+import Stratonet.Infrastructure.Helpers.ObjectToJSONStringConverter;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
 
@@ -22,6 +23,7 @@ public class FileThread extends Thread
     private Socket socket;
     private DataInputStream is;
     private DataOutputStream os;
+    private BufferedOutputStream bos;
     private IMessageService messageService;
     private IAuthenticationService authenticationService;
     private boolean receivedHandshake = false;
@@ -47,12 +49,24 @@ public class FileThread extends Thread
                 return;
             }
 
-            Object userQuery = GetUserQuery(clientToken);
+            UserQuery userQuery = GetUserQuery(clientToken);
             if (userQuery == null)
             {
                 socket.close();
                 return;
             }
+
+            switch(userQuery.getApiType())
+            {
+                case APOD:
+                    SendAPODMessage(userQuery.getObject());
+                    break;
+
+                case Insight:
+                    SendInsightMessage(userQuery.getObject());
+                    break;
+            }
+
         }
         catch (IOException ex)
         {
@@ -98,7 +112,8 @@ public class FileThread extends Thread
         {
             is = new DataInputStream(socket.getInputStream());
             os = new DataOutputStream(socket.getOutputStream());
-            messageService = new MessageService(socket, is, os);
+            bos = new BufferedOutputStream(socket.getOutputStream());
+            messageService = new MessageService(socket, is, os, bos);
         }
         catch (IOException ex)
         {
@@ -122,17 +137,28 @@ public class FileThread extends Thread
         return null;
     }
 
-    private Object GetUserQuery(String clientToken)
+    private UserQuery GetUserQuery(String clientToken)
     {
         for (UserQuery uq : queue)
         {
             if (uq.getToken().equals(clientToken))
             {
-                return uq.getObject();
+                return uq;
             }
         }
 
         return null;
     }
 
+    private void SendInsightMessage(Object object) throws IOException, NullPointerException
+    {
+        String json = ObjectToJSONStringConverter.Convert(object);
+        Message insightMessage = new Message(RequestPhase.FILE, RequestType.SUCCESS, json);
+        messageService.SendMessage(insightMessage);
+    }
+
+    private void SendAPODMessage(Object Object)
+    {
+
+    }
 }

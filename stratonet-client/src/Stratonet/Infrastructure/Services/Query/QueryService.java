@@ -3,10 +3,12 @@ package Stratonet.Infrastructure.Services.Query;
 import Stratonet.Core.Enums.APIType;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
+import Stratonet.Infrastructure.Helpers.DateValidator;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Message;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Query.IQueryService;
+import Stratonet.Infrastructure.Helpers.HashValidator;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
 
@@ -25,6 +27,8 @@ public class QueryService implements IQueryService
     private Socket socket;
     private IMessageService messageService;
     private String token;
+    public static APIType apiType;
+    public static String hashValue;
 
     public QueryService(Socket socket)
     {
@@ -71,6 +75,22 @@ public class QueryService implements IQueryService
                     queryMessage.setToken(token);
                     messageService.SendMessage(queryMessage);
                 }
+                else if (message.getRequestType().equals(RequestType.REQUEST))
+                {
+                    String input = "";
+                    Scanner scanner;
+                    // If client doesn't provide a valid Date for APOD service
+                    while(!DateValidator.isValidDate(input))
+                    {
+                        System.out.println(message.getPayload());
+                        scanner = new Scanner(System.in);
+                        input = scanner.nextLine().trim();
+                    }
+
+                    Message dateMessage = new Message(RequestPhase.QUERY, RequestType.CHALLENGE, input);
+                    dateMessage.setToken(token);
+                    messageService.SendMessage(dateMessage);
+                }
                 else if (message.getRequestType().equals(RequestType.FAIL))
                 {
                     logger.log(Level.INFO, "Query failed, closing connection");
@@ -79,7 +99,8 @@ public class QueryService implements IQueryService
                 else if (message.getRequestType().equals(RequestType.SUCCESS))
                 {
                     logger.log(Level.INFO, "Successfully queried with the server.");
-                    System.out.println(message.getPayload());
+                    System.out.println("Received hash = " + message.getPayload());
+                    hashValue = message.getPayload();
                 }
             }
         }
@@ -89,7 +110,7 @@ public class QueryService implements IQueryService
     {
         try
         {
-            APIType apiType = APIType.valueOf(apiTypeAsString);
+            apiType = APIType.valueOf(apiTypeAsString);
             return true;
         }
         catch (IllegalArgumentException ex)

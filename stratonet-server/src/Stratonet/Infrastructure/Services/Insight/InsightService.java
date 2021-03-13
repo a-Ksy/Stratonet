@@ -1,13 +1,11 @@
 package Stratonet.Infrastructure.Services.Insight;
 
 import Stratonet.Core.Helpers.StratonetLogger;
-import Stratonet.Core.Models.InsightResponse;
 import Stratonet.Core.Models.PRE;
 import Stratonet.Core.Models.SOL;
 import Stratonet.Core.Services.Insight.IInsightService;
 import Stratonet.Infrastructure.Helpers.StringToMapConverter;
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +17,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.logging.Level;
 
@@ -84,18 +81,11 @@ public class InsightService implements IInsightService
             return sol.PRE;
 
         }
-        catch (URISyntaxException ex)
+        catch (Exception ex)
         {
-            logger.log(Level.SEVERE, "Exception: Wrong URI for the Insight API");
+            logger.log(Level.SEVERE, "Exception while fetching Insight API");
         }
-        catch (IOException | InterruptedException ex)
-        {
-            logger.log(Level.SEVERE, "Exception while connecting to the Insight API");
-        }
-        catch (CompletionException ex)
-        {
-            logger.log(Level.SEVERE, "Exception while parsing the response of the Insight API");
-        }
+
 
         return null;
     }

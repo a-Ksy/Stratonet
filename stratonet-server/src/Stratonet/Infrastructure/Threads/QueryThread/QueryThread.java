@@ -6,15 +6,18 @@ import Stratonet.Core.Enums.APIType;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
+import Stratonet.Core.Models.APODResponse;
 import Stratonet.Core.Models.Message;
 import Stratonet.Core.Models.PRE;
 import Stratonet.Core.Models.UserQuery;
+import Stratonet.Core.Services.APOD.IAPODService;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Insight.IInsightService;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Query.IQueryService;
 import Stratonet.Core.Services.User.IUserService;
 import Stratonet.Infrastructure.Helpers.ObjectToJSONStringConverter;
+import Stratonet.Infrastructure.Services.APOD.APODService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Insight.InsightService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
@@ -39,9 +42,12 @@ public class QueryThread extends Thread
     private IAuthenticationService authenticationService;
     private IQueryService queryService;
     private IInsightService insightService;
+    private IAPODService apodService;
     private String clientToken;
+    private APIType apiType;
 
     private boolean receivedAPIChoice = false;
+    private boolean receivedDate = false;
 
     public QueryThread(Socket socket, BlockingQueue<UserQuery> queue)
     {
@@ -50,6 +56,7 @@ public class QueryThread extends Thread
         this.authenticationService = new AuthenticationService();
         this.queryService = new QueryService();
         this.insightService = new InsightService();
+        this.apodService = new APODService();
         this.socket = socket;
     }
 
@@ -59,7 +66,7 @@ public class QueryThread extends Thread
         {
             InitializeIO();
 
-            APIType apiType = ReceiveAPIChoice();
+            apiType = ReceiveAPIChoice();
             if (!receivedAPIChoice)
             {
                 socket.close();
@@ -178,7 +185,13 @@ public class QueryThread extends Thread
 
     private void SendInsightMessage() throws IOException, NullPointerException
     {
-        PRE pre = insightService.GetRandomPRE();
+        // PRE pre = insightService.GetRandomPRE();
+        // For debug purposes
+        PRE pre = new PRE();
+        pre.av = 1;
+        pre.ct = 1;
+        pre.mn = 1;
+        pre.mx = 1;
         if (pre == null)
         {
             Message message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched a PRE");
@@ -195,12 +208,26 @@ public class QueryThread extends Thread
 
     private void SendAPODMessage() throws IOException, NullPointerException
     {
-        System.out.println("Not yed implemented");
-        return;
+        String date = null;
+        Message message = new Message(RequestPhase.QUERY, RequestType.REQUEST, "Provide a date in yyyy-MM-dd format:");
+        messageService.SendMessage(message);
+        while (!receivedDate)
+        {
+            Message dateMessage = messageService.RetrieveMessage(true);
+            if (authenticationService.ValidateToken(dateMessage.getToken()))
+            {
+                receivedDate = true;
+                date = dateMessage.getPayload();
+            }
+        }
+        APODResponse apodResponse = apodService.getAPODImage(date);
+        AddToQueue(apodResponse);
+        // ToDo: Hash the image and send the hash to the client
+
     }
 
     private void AddToQueue(Object object)
     {
-        queue.add(new UserQuery(clientToken, object));
+        queue.add(new UserQuery(clientToken, object, apiType));
     }
 }

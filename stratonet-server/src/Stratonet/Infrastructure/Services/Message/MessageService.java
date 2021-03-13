@@ -6,9 +6,7 @@ import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Message;
 import Stratonet.Core.Services.Message.IMessageService;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.logging.Level;
 
@@ -18,6 +16,7 @@ public class MessageService implements IMessageService
     private Socket socket;
     private DataInputStream is;
     private DataOutputStream os;
+    private BufferedOutputStream bos;
 
     public MessageService(Socket socket, DataInputStream is, DataOutputStream os)
     {
@@ -25,6 +24,16 @@ public class MessageService implements IMessageService
         this.socket = socket;
         this.is = is;
         this.os = os;
+    }
+
+    public MessageService(Socket socket, DataInputStream is, DataOutputStream os, BufferedOutputStream bos)
+    {
+        this.logger = StratonetLogger.getInstance();
+        this.socket = socket;
+        this.is = is;
+        this.os = os;
+        this.bos = bos;
+
     }
 
     public void SendMessage(Message message) throws IOException
