@@ -28,6 +28,8 @@ public class QueryService implements IQueryService
     private String token;
     public static APIType apiType;
     public static String hashValue;
+    public static boolean querySuccessful = true;
+
 
     public QueryService(Socket socket)
     {
@@ -92,7 +94,8 @@ public class QueryService implements IQueryService
                 }
                 else if (message.getRequestType().equals(RequestType.FAIL))
                 {
-                    logger.log(Level.INFO, "Query failed, closing connection");
+                    logger.log(Level.INFO, "Query failed, restarting the query");
+                    querySuccessful = false;
                     break;
                 }
                 else if (message.getRequestType().equals(RequestType.SUCCESS))
@@ -100,6 +103,7 @@ public class QueryService implements IQueryService
                     logger.log(Level.INFO, "Successfully queried with the server.");
                     System.out.println("Received hash = " + message.getPayload());
                     hashValue = message.getPayload();
+                    querySuccessful = true;
                 }
             }
         }

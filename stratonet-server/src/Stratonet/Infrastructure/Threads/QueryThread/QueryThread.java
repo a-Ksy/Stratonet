@@ -197,8 +197,7 @@ public class QueryThread extends Thread
         {
             Message message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched a PRE");
             messageService.SendMessage(message);
-            logger.log(Level.INFO, "Couldn't fetched a PRE, restarting the query");
-            this.run();
+            logger.log(Level.INFO, "Couldn't fetched a PRE");
             return;
         }
         AddToQueue(pre);
@@ -222,10 +221,18 @@ public class QueryThread extends Thread
                 date = dateMessage.getPayload();
             }
         }
-        APODResponse apodResponse = apodService.getAPODImage(date);
+        //APODResponse apodResponse = apodService.getAPODImage(date);
+        APODResponse apodResponse = null;
+        if (apodResponse == null)
+        {
+            message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched an image");
+            messageService.SendMessage(message);
+            logger.log(Level.INFO, "Couldn't fetched an image");
+            return;
+        }
         byte[] imageAsByteArray = ImageToByteArrayConverter.Convert(apodResponse.url);
         AddToQueue(imageAsByteArray);
-        // ToDo: Hash the image and send the hash to the client
+
         Checksum checksum = new Adler32();
         checksum.update(imageAsByteArray, 0, imageAsByteArray.length);
         long hashedImage = checksum.getValue();
