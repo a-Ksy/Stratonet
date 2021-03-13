@@ -25,6 +25,7 @@ public class MessageService implements IMessageService {
         this.os = os;
     }
 
+    @Override
     public void SendMessage(Message message) {
         try {
             if (message.getToken() != null) {
@@ -41,6 +42,7 @@ public class MessageService implements IMessageService {
         }
     }
 
+    @Override
     public Message RetrieveMessage(boolean payloadIsByteArray) {
         Message message = new Message();
         try {

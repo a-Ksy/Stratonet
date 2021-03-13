@@ -16,6 +16,7 @@ public class SaveService implements ISaveService {
         logger = StratonetLogger.getInstance();
     }
 
+    @Override
     public void SaveObjectAsJSON(Object object, String fileName) {
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -27,6 +28,7 @@ public class SaveService implements ISaveService {
         }
     }
 
+    @Override
     public boolean SaveImageFromByteArray(byte[] response, String fileName) {
         try {
             FileOutputStream fos = new FileOutputStream("save/" + fileName);
@@ -40,6 +42,7 @@ public class SaveService implements ISaveService {
         }
     }
 
+    @Override
     public void DeleteImage(String fileName) {
         File image = new File("save/" + fileName);
         image.delete();

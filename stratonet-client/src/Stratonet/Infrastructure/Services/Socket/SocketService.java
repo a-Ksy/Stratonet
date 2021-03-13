@@ -25,6 +25,7 @@ public class SocketService implements ISocketService {
         this.serviceType = serviceType;
     }
 
+    @Override
     public void Connect() {
         try {
             switch (serviceType) {

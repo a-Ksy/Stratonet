@@ -47,6 +47,7 @@ public class QueryService implements IQueryService {
         }
     }
 
+    @Override
     public void RunQuery() {
         Message message;
         while ((message = messageService.RetrieveMessage(false)).getRequestPhase() != null) {

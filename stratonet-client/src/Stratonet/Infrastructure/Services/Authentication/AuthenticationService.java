@@ -48,6 +48,7 @@ public class AuthenticationService implements IAuthenticationService {
         }
     }
 
+    @Override
     public void RunAuthentication() {
         Message message;
         while ((message = messageService.RetrieveMessage(false)).getRequestPhase() != null) {
