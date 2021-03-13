@@ -6,7 +6,6 @@ import Stratonet.Core.Repositories.UserRepository.IUserRepository;
 import Stratonet.Infrastructure.Helpers.UserParser;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
 
 public class UserRepository implements IUserRepository
 {

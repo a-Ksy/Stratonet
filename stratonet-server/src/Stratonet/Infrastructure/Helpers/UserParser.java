@@ -3,14 +3,13 @@ package Stratonet.Infrastructure.Helpers;
 import Stratonet.Core.Entities.User;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Users;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.logging.Level;
 
 public class UserParser

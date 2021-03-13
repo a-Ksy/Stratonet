@@ -1,7 +1,6 @@
 package Stratonet.Core.Entities;
 
 import java.net.InetAddress;
-import java.net.SocketAddress;
 
 public class Session
 {

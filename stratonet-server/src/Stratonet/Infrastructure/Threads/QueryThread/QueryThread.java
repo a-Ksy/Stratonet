@@ -14,14 +14,14 @@ import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Insight.IInsightService;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Query.IQueryService;
-import Stratonet.Infrastructure.Utils.ImageToByteArrayConverter;
-import Stratonet.Infrastructure.Utils.ObjectToJSONStringConverter;
 import Stratonet.Infrastructure.Services.APOD.APODService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Insight.InsightService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
 import Stratonet.Infrastructure.Services.Query.QueryService;
 import Stratonet.Infrastructure.Services.User.UserService;
+import Stratonet.Infrastructure.Utils.ImageToByteArrayConverter;
+import Stratonet.Infrastructure.Utils.ObjectToJSONStringConverter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -84,8 +84,6 @@ public class QueryThread extends Thread
                     break;
             }
 
-            // Have a timeout before disconnecting the client
-            // DisconnectClient();
         }
         catch (IOException ex)
         {
@@ -172,16 +170,6 @@ public class QueryThread extends Thread
             }
         }
         return null;
-    }
-
-    private void DisconnectClient()
-    {
-        User user = UserService.getInstance().GetUserByToken(clientToken);
-        if (user != null)
-        {
-            UserService.getInstance().ResetUserSession(user);
-        }
-        logger.log(Level.INFO, "Query is finished, disconnecting the user");
     }
 
     private void SendInsightMessage() throws IOException, NullPointerException

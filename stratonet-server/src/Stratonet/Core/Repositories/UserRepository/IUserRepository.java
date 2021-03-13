@@ -1,5 +1,7 @@
 package Stratonet.Core.Repositories.UserRepository;
+
 import Stratonet.Core.Entities.User;
+
 import java.util.ArrayList;
 
 public interface IUserRepository
