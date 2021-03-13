@@ -8,6 +8,7 @@ import Stratonet.Core.Models.PRE;
 import Stratonet.Core.Services.File.IFileService;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Save.ISaveService;
+import Stratonet.Infrastructure.Utils.DateValidator;
 import Stratonet.Infrastructure.Utils.FileNameGenerator;
 import Stratonet.Infrastructure.Utils.HashValidator;
 import Stratonet.Infrastructure.Utils.StringToPREConverter;
@@ -20,6 +21,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.logging.Level;
 
 public class FileService implements IFileService
@@ -100,6 +102,7 @@ public class FileService implements IFileService
                         }
                     }
                 }
+                break;
             case APOD:
                 while ((message = messageService.RetrieveMessage(true)).getRequestPhase() != null)
                 {
@@ -135,8 +138,33 @@ public class FileService implements IFileService
                         }
                     }
                 }
-
+                break;
         }
 
+        Message restartMessage;
+        while ((restartMessage = messageService.RetrieveMessage(false)).getRequestPhase() != null)
+        {
+            String input = "";
+            Scanner scanner;
+            // If client doesn't provide a valid Date for APOD service
+            while(!input.equals("N") && !input.equals("Y"))
+            {
+                System.out.println(restartMessage.getPayload());
+                scanner = new Scanner(System.in);
+                input = scanner.nextLine().trim();
+            }
+            
+            Message requestRestartMessage = new Message(RequestPhase.FILE, RequestType.CHALLENGE, input);
+            messageService.SendMessage(requestRestartMessage);
+            
+            if (input.equals("Y"))
+            {
+                fileSuccessful = false;
+                break;
+            }
+            
+            fileSuccessful = true;
+            break;
+        }
     }
 }

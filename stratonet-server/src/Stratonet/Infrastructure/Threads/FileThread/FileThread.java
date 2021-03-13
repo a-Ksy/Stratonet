@@ -1,5 +1,6 @@
 package Stratonet.Infrastructure.Threads.FileThread;
 
+import Stratonet.Core.Entities.User;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
@@ -8,6 +9,7 @@ import Stratonet.Core.Models.Message;
 import Stratonet.Core.Models.UserQuery;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Message.IMessageService;
+import Stratonet.Infrastructure.Services.User.UserService;
 import Stratonet.Infrastructure.Utils.ImageToByteArrayConverter;
 import Stratonet.Infrastructure.Utils.ObjectToJSONStringConverter;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
@@ -15,7 +17,7 @@ import Stratonet.Infrastructure.Services.Message.MessageService;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 
 public class FileThread extends Thread
@@ -28,6 +30,7 @@ public class FileThread extends Thread
     private IMessageService messageService;
     private IAuthenticationService authenticationService;
     private boolean receivedHandshake = false;
+    private String clientToken;
 
     public FileThread(Socket socket, BlockingQueue<UserQuery> queue)
     {
@@ -43,7 +46,7 @@ public class FileThread extends Thread
         {
             InitializeIO();
 
-            String clientToken = HandshakeClient();
+            clientToken = HandshakeClient();
             if (clientToken == null)
             {
                 socket.close();
@@ -67,6 +70,8 @@ public class FileThread extends Thread
                     SendInsightMessage(userQuery.getObject());
                     break;
             }
+
+            AskForRestart();
 
         }
         catch (IOException ex)
@@ -163,5 +168,52 @@ public class FileThread extends Thread
         byte[] imageAsByteArray = (byte[]) object;
         Message apodMessage = new Message(RequestPhase.FILE, RequestType.SUCCESS, imageAsByteArray);
         messageService.SendMessage(apodMessage);
+    }
+
+    private void AskForRestart() throws IOException, NullPointerException
+    {
+        Message requestMessage = new Message(RequestPhase.FILE, RequestType.REQUEST, "Would you like to start another query? (Y or N)");
+        messageService.SendMessage(requestMessage);
+
+        while (true)
+        {
+            Message restartMessage = RetrieveMessageAndValidateTimeout();
+            if (restartMessage == null)
+            {
+                User user =  UserService.getInstance().GetUserByToken(clientToken);
+                UserService.getInstance().ResetUserSession(user);
+                break;
+            }
+
+            if (restartMessage.getPayload() != null)
+            {
+                if (restartMessage.getPayload().equals("N"))
+                {
+                    User user =  UserService.getInstance().GetUserByToken(clientToken);
+                    UserService.getInstance().ResetUserSession(user);
+                }
+                break;
+            }
+        }
+    }
+
+    private Message RetrieveMessageAndValidateTimeout() throws IOException
+    {
+        ExecutorService executor = Executors.newCachedThreadPool();
+        Callable<Message> task = new Callable<Message>() {
+            public Message call() throws IOException {
+                return messageService.RetrieveMessage(true);
+            }
+        };
+        Future<Message> future = executor.submit(task);
+        try {
+            Message result = future.get(10, TimeUnit.SECONDS);
+            return result;
+        } catch (Exception ex) {
+            logger.log(Level.INFO, "User failed to request a restart on time");
+            future.cancel(true);
+        }
+
+        return null;
     }
 }
