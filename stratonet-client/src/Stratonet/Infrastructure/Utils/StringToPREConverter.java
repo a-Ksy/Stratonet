@@ -5,18 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
-public class StringToPREConverter
-{
-    public static PRE Convert(String content)
-    {
+public class StringToPREConverter {
+    public static PRE Convert(String content) {
         ObjectMapper objectMapper = new ObjectMapper();
-        try
-        {
+        try {
             PRE pre = objectMapper.readValue(content, PRE.class);
             return pre;
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             return null;
         }
     }

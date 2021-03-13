@@ -9,49 +9,38 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 
-public class SaveService implements ISaveService
-{
+public class SaveService implements ISaveService {
     private StratonetLogger logger;
 
-    public SaveService()
-    {
+    public SaveService() {
         logger = StratonetLogger.getInstance();
     }
 
-    public void SaveObjectAsJSON(Object object, String fileName)
-    {
+    public void SaveObjectAsJSON(Object object, String fileName) {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        try
-        {
+        try {
             objectMapper.writeValue(new File("save/" + fileName), object);
             logger.log(Level.INFO, "Successfully saved the JSON file");
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.WARNING, "Exception while saving JSON file");
         }
     }
 
-    public boolean SaveImageFromByteArray(byte[] response, String fileName)
-    {
-        try
-        {
+    public boolean SaveImageFromByteArray(byte[] response, String fileName) {
+        try {
             FileOutputStream fos = new FileOutputStream("save/" + fileName);
             fos.write(response);
             fos.close();
             logger.log(Level.INFO, "Successfully saved the Image file");
             return true;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.WARNING, "Exception while saving Image file");
             return false;
         }
     }
 
-    public void DeleteImage(String fileName)
-    {
+    public void DeleteImage(String fileName) {
         File image = new File("save/" + fileName);
         image.delete();
     }

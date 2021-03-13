@@ -1,7 +1,6 @@
 package Stratonet.Core.Services.Authentication;
 
-public interface IAuthenticationService
-{
+public interface IAuthenticationService {
 
     void RunAuthentication();
 }

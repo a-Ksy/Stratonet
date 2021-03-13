@@ -1,7 +1,6 @@
 package Stratonet.Core.Models;
 
-public class PRE
-{
+public class PRE {
     public float av;
 
     public float ct;

@@ -18,55 +18,44 @@ import java.net.Socket;
 import java.util.Scanner;
 import java.util.logging.Level;
 
-public class QueryService implements IQueryService
-{
+public class QueryService implements IQueryService {
+    public static APIType apiType;
+    public static String hashValue;
+    public static boolean querySuccessful = true;
     private StratonetLogger logger;
     private DataInputStream is;
     private DataOutputStream os;
     private Socket socket;
     private IMessageService messageService;
     private String token;
-    public static APIType apiType;
-    public static String hashValue;
-    public static boolean querySuccessful = true;
 
 
-    public QueryService(Socket socket)
-    {
+    public QueryService(Socket socket) {
         logger = StratonetLogger.getInstance();
         this.socket = socket;
         this.token = AuthenticationService.GetToken();
         InitializeIO();
     }
 
-    private void InitializeIO()
-    {
-        try
-        {
-            is =  new DataInputStream(socket.getInputStream());
+    private void InitializeIO() {
+        try {
+            is = new DataInputStream(socket.getInputStream());
             os = new DataOutputStream(socket.getOutputStream());
             messageService = new MessageService(socket, is, os);
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while initializing IO: " + ex);
         }
     }
 
-    public void RunQuery()
-    {
+    public void RunQuery() {
         Message message;
-        while ((message = messageService.RetrieveMessage(false)).getRequestPhase() != null)
-        {
-            if (message.getRequestPhase().equals(RequestPhase.QUERY))
-            {
-                if (message.getRequestType().equals(RequestType.CHOICE))
-                {
+        while ((message = messageService.RetrieveMessage(false)).getRequestPhase() != null) {
+            if (message.getRequestPhase().equals(RequestPhase.QUERY)) {
+                if (message.getRequestType().equals(RequestType.CHOICE)) {
                     String input = "";
                     Scanner scanner;
                     // If client doesn't provide a valid API name
-                    while (!validateAPIType(input))
-                    {
+                    while (!validateAPIType(input)) {
                         System.out.println(message.getPayload());
                         scanner = new Scanner(System.in);
                         input = scanner.nextLine().trim();
@@ -75,14 +64,11 @@ public class QueryService implements IQueryService
                     Message queryMessage = new Message(RequestPhase.QUERY, RequestType.CHALLENGE, input);
                     queryMessage.setToken(token);
                     messageService.SendMessage(queryMessage);
-                }
-                else if (message.getRequestType().equals(RequestType.REQUEST))
-                {
+                } else if (message.getRequestType().equals(RequestType.REQUEST)) {
                     String input = "";
                     Scanner scanner;
                     // If client doesn't provide a valid Date for APOD service
-                    while(!DateValidator.isValidDate(input))
-                    {
+                    while (!DateValidator.isValidDate(input)) {
                         System.out.println(message.getPayload());
                         scanner = new Scanner(System.in);
                         input = scanner.nextLine().trim();
@@ -91,15 +77,11 @@ public class QueryService implements IQueryService
                     Message dateMessage = new Message(RequestPhase.QUERY, RequestType.CHALLENGE, input);
                     dateMessage.setToken(token);
                     messageService.SendMessage(dateMessage);
-                }
-                else if (message.getRequestType().equals(RequestType.FAIL))
-                {
+                } else if (message.getRequestType().equals(RequestType.FAIL)) {
                     logger.log(Level.INFO, "Query failed, restarting the query");
                     querySuccessful = false;
                     break;
-                }
-                else if (message.getRequestType().equals(RequestType.SUCCESS))
-                {
+                } else if (message.getRequestType().equals(RequestType.SUCCESS)) {
                     logger.log(Level.INFO, "Successfully queried with the server.");
                     System.out.println("Received hash = " + message.getPayload());
                     hashValue = message.getPayload();
@@ -109,15 +91,11 @@ public class QueryService implements IQueryService
         }
     }
 
-    private boolean validateAPIType(String apiTypeAsString)
-    {
-        try
-        {
+    private boolean validateAPIType(String apiTypeAsString) {
+        try {
             apiType = APIType.valueOf(apiTypeAsString);
             return true;
-        }
-        catch (IllegalArgumentException ex)
-        {
+        } catch (IllegalArgumentException ex) {
             return false;
         }
     }

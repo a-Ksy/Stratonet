@@ -11,28 +11,23 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.logging.Level;
 
-public class SocketService implements ISocketService
-{
+public class SocketService implements ISocketService {
+    ServiceType serviceType;
     private StratonetLogger logger;
     private Socket socket;
     private String address;
     private int port;
-    ServiceType serviceType;
 
-    public SocketService(String address, int port, ServiceType serviceType)
-    {
+    public SocketService(String address, int port, ServiceType serviceType) {
         logger = StratonetLogger.getInstance();
         this.address = address;
         this.port = port;
         this.serviceType = serviceType;
     }
 
-    public void Connect()
-    {
-        try
-        {
-            switch (serviceType)
-            {
+    public void Connect() {
+        try {
+            switch (serviceType) {
                 case AUTH:
                     socket = new Socket(address, port);
                     logger.log(Level.INFO, "AUTH: Successfully connected to " + address + " on port " + port);
@@ -56,9 +51,7 @@ public class SocketService implements ISocketService
                     break;
 
             }
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Exception while connecting to " + address + " on port " + port + ": " + ex);
         }
     }
