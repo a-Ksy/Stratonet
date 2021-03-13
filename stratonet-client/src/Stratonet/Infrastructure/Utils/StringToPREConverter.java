@@ -1,4 +1,4 @@
-package Stratonet.Infrastructure.Helpers;
+package Stratonet.Infrastructure.Utils;
 
 import Stratonet.Core.Models.PRE;
 import com.fasterxml.jackson.databind.ObjectMapper;

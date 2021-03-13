@@ -1,6 +1,5 @@
 package Stratonet.Infrastructure.Threads.QueryThread;
 
-import Stratonet.Core.Entities.Session;
 import Stratonet.Core.Entities.User;
 import Stratonet.Core.Enums.APIType;
 import Stratonet.Core.Enums.RequestPhase;
@@ -15,8 +14,7 @@ import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Insight.IInsightService;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Query.IQueryService;
-import Stratonet.Core.Services.User.IUserService;
-import Stratonet.Infrastructure.Helpers.ObjectToJSONStringConverter;
+import Stratonet.Infrastructure.Utils.ObjectToJSONStringConverter;
 import Stratonet.Infrastructure.Services.APOD.APODService;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Insight.InsightService;

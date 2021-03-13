@@ -8,6 +8,6 @@ public interface IMessageService
 {
     void SendMessage(Message message);
 
-    Message RetrieveMessage();
+    Message RetrieveMessage(boolean payloadIsByteArray);
 }
 

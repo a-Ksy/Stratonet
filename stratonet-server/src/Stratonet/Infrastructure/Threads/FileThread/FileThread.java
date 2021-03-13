@@ -3,11 +3,13 @@ package Stratonet.Infrastructure.Threads.FileThread;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
 import Stratonet.Core.Helpers.StratonetLogger;
+import Stratonet.Core.Models.APODResponse;
 import Stratonet.Core.Models.Message;
 import Stratonet.Core.Models.UserQuery;
 import Stratonet.Core.Services.Authentication.IAuthenticationService;
 import Stratonet.Core.Services.Message.IMessageService;
-import Stratonet.Infrastructure.Helpers.ObjectToJSONStringConverter;
+import Stratonet.Infrastructure.Utils.ImageToByteArrayConverter;
+import Stratonet.Infrastructure.Utils.ObjectToJSONStringConverter;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
 
@@ -23,7 +25,6 @@ public class FileThread extends Thread
     private Socket socket;
     private DataInputStream is;
     private DataOutputStream os;
-    private BufferedOutputStream bos;
     private IMessageService messageService;
     private IAuthenticationService authenticationService;
     private boolean receivedHandshake = false;
@@ -112,8 +113,7 @@ public class FileThread extends Thread
         {
             is = new DataInputStream(socket.getInputStream());
             os = new DataOutputStream(socket.getOutputStream());
-            bos = new BufferedOutputStream(socket.getOutputStream());
-            messageService = new MessageService(socket, is, os, bos);
+            messageService = new MessageService(socket, is, os);
         }
         catch (IOException ex)
         {
@@ -157,8 +157,11 @@ public class FileThread extends Thread
         messageService.SendMessage(insightMessage);
     }
 
-    private void SendAPODMessage(Object Object)
+    private void SendAPODMessage(Object object) throws IOException, NullPointerException
     {
-
+        APODResponse apodResponse = (APODResponse) object;
+        byte[] imageAsByteArray = ImageToByteArrayConverter.Convert(apodResponse.url);
+        Message apodMessage = new Message(RequestPhase.FILE, RequestType.SUCCESS, imageAsByteArray);
+        messageService.SendMessage(apodMessage);
     }
 }

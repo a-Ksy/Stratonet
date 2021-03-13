@@ -15,6 +15,8 @@ public class Message
 
     private String payload;
 
+    private byte[] payloadAsByteArray;
+
     private String token;
 
     public Message(){}
@@ -30,6 +32,15 @@ public class Message
             this.size = payload.getBytes("UTF-8").length + 2;
         }
         catch (UnsupportedEncodingException ex) {}
+    }
+
+    public Message(RequestPhase requestPhase, RequestType requestType, byte[] payloadAsByteArray)
+    {
+        this.requestPhase = requestPhase;
+        this.requestType = requestType;
+        this.payloadAsByteArray = payloadAsByteArray;
+        this.token = null;
+        this.size = payloadAsByteArray.length;
     }
 
     public Message(RequestPhase requestPhase, RequestType requestType, String payload, String token)
@@ -83,5 +94,13 @@ public class Message
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public byte[] getPayloadAsByteArray() {
+        return payloadAsByteArray;
+    }
+
+    public void setPayloadAsByteArray(byte[] payloadAsByteArray) {
+        this.payloadAsByteArray = payloadAsByteArray;
     }
 }

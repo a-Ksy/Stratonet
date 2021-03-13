@@ -1,4 +1,4 @@
-package Stratonet.Infrastructure.Helpers;
+package Stratonet.Infrastructure.Utils;
 
 import java.text.DateFormat;
 import java.text.ParseException;

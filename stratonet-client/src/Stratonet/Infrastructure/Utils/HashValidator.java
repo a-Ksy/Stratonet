@@ -1,4 +1,4 @@
-package Stratonet.Infrastructure.Helpers;
+package Stratonet.Infrastructure.Utils;
 
 import Stratonet.Core.Helpers.StratonetLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;

@@ -16,7 +16,6 @@ public class MessageService implements IMessageService
     private Socket socket;
     private DataInputStream is;
     private DataOutputStream os;
-    private BufferedOutputStream bos;
 
     public MessageService(Socket socket, DataInputStream is, DataOutputStream os)
     {
@@ -24,16 +23,6 @@ public class MessageService implements IMessageService
         this.socket = socket;
         this.is = is;
         this.os = os;
-    }
-
-    public MessageService(Socket socket, DataInputStream is, DataOutputStream os, BufferedOutputStream bos)
-    {
-        this.logger = StratonetLogger.getInstance();
-        this.socket = socket;
-        this.is = is;
-        this.os = os;
-        this.bos = bos;
-
     }
 
     public void SendMessage(Message message) throws IOException
@@ -46,7 +35,14 @@ public class MessageService implements IMessageService
         os.write(message.getRequestPhase().getValue());
         os.write(message.getRequestType().getValue());
         os.writeInt(message.getSize());
-        os.writeUTF(message.getPayload());
+        if (message.getPayloadAsByteArray() != null)
+        {
+            os.write(message.getPayloadAsByteArray());
+        }
+        else
+        {
+            os.writeUTF(message.getPayload());
+        }
         logger.log(Level.INFO, "Sent message: " + "\"" + message.getPayload() + "\"" + " to the socket: " + socket.getRemoteSocketAddress());
     }
 

@@ -49,7 +49,7 @@ public class AuthenticationService implements IAuthenticationService
     public void RunAuthentication()
     {
             Message message;
-            while ((message = messageService.RetrieveMessage()).getRequestPhase() != null)
+            while ((message = messageService.RetrieveMessage(false)).getRequestPhase() != null)
             {
                 if (message.getRequestPhase().equals(RequestPhase.AUTH))
                 {

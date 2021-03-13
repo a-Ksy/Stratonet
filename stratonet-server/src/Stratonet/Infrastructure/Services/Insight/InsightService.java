@@ -4,20 +4,17 @@ import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.PRE;
 import Stratonet.Core.Models.SOL;
 import Stratonet.Core.Services.Insight.IInsightService;
-import Stratonet.Infrastructure.Helpers.StringToMapConverter;
+import Stratonet.Infrastructure.Utils.StringToMapConverter;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
-import java.util.concurrent.CompletionException;
 import java.util.logging.Level;
 
 public class InsightService implements IInsightService

@@ -48,7 +48,7 @@ public class MessageService implements IMessageService
         }
     }
 
-    public Message RetrieveMessage()
+    public Message RetrieveMessage(boolean payloadIsByteArray)
     {
         Message message = new Message();
         try
@@ -59,14 +59,22 @@ public class MessageService implements IMessageService
             message.setSize(size);
             byte[] payloadByte = new byte[size];
             is.readFully(payloadByte, 0, size);
-            String payloadWithExtraChars = new String(payloadByte);
-            StringBuilder payload = new StringBuilder();
-            for (int i=2; i<payloadWithExtraChars.length(); i++)
+            if (!payloadIsByteArray)
             {
-                payload.append(payloadWithExtraChars.charAt(i));
+                String payloadWithExtraChars = new String(payloadByte);
+                StringBuilder payload = new StringBuilder();
+                for (int i=2; i<payloadWithExtraChars.length(); i++)
+                {
+                    payload.append(payloadWithExtraChars.charAt(i));
+                }
+                message.setPayload(payload.toString());
+                logger.log(Level.INFO, "Received message: " + "\"" + message.getPayload() + "\"");
             }
-            message.setPayload(payload.toString());
-            logger.log(Level.INFO, "Received message: " + "\"" + message.getPayload() + "\"");
+            else
+            {
+                message.setPayloadAsByteArray(payloadByte);
+            }
+
         }
         catch (IOException ex)
         {

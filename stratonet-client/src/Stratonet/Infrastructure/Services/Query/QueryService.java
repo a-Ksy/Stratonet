@@ -3,12 +3,11 @@ package Stratonet.Infrastructure.Services.Query;
 import Stratonet.Core.Enums.APIType;
 import Stratonet.Core.Enums.RequestPhase;
 import Stratonet.Core.Enums.RequestType;
-import Stratonet.Infrastructure.Helpers.DateValidator;
+import Stratonet.Infrastructure.Utils.DateValidator;
 import Stratonet.Core.Helpers.StratonetLogger;
 import Stratonet.Core.Models.Message;
 import Stratonet.Core.Services.Message.IMessageService;
 import Stratonet.Core.Services.Query.IQueryService;
-import Stratonet.Infrastructure.Helpers.HashValidator;
 import Stratonet.Infrastructure.Services.Authentication.AuthenticationService;
 import Stratonet.Infrastructure.Services.Message.MessageService;
 
@@ -55,7 +54,7 @@ public class QueryService implements IQueryService
     public void RunQuery()
     {
         Message message;
-        while ((message = messageService.RetrieveMessage()).getRequestPhase() != null)
+        while ((message = messageService.RetrieveMessage(false)).getRequestPhase() != null)
         {
             if (message.getRequestPhase().equals(RequestPhase.QUERY))
             {
