@@ -87,6 +87,7 @@ public class QueryService implements IQueryService {
                     System.out.println("Received hash = " + message.getPayload());
                     hashValue = message.getPayload();
                     querySuccessful = true;
+                    break;
                 }
             }
         }
