@@ -143,13 +143,16 @@ public class QueryThread extends Thread {
     }
 
     private void SendInsightMessage() throws IOException, NullPointerException {
-        // PRE pre = insightService.GetRandomPRE();
-        // For debug purposes
-        PRE pre = new PRE();
-        pre.av = 1;
-        pre.ct = 1;
-        pre.mn = 1;
-        pre.mx = 1;
+        /*
+            FOR DEBUG --> since the Insight API has limited calls.
+            PRE pre = new PRE();
+            pre.av = 1;
+            pre.ct = 1;
+            pre.mn = 1;
+            pre.mx = 1;
+        */
+        PRE pre = insightService.GetRandomPRE();
+
         if (pre == null) {
             Message message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched a PRE");
             messageService.SendMessage(message);
@@ -157,6 +160,11 @@ public class QueryThread extends Thread {
             return;
         }
         AddToQueue(pre);
+        /*
+            FOR TESTING --> The scenario where the sent hash and received file's hash doesn't match
+            Remove the line 168 and put this line instead:
+            String hashedPRE = "INVALID_HASH";
+        */
         String hashedPRE = String.valueOf(ObjectToJSONStringConverter.Convert(pre).hashCode());
         logger.log(Level.INFO, "Sent hash = " + hashedPRE);
         Message hashMessage = new Message(RequestPhase.QUERY, RequestType.SUCCESS, hashedPRE);
@@ -175,7 +183,7 @@ public class QueryThread extends Thread {
             }
         }
         APODResponse apodResponse = apodService.getAPODImage(date);
-        // APODResponse apodResponse = null;
+
         if (apodResponse == null) {
             message = new Message(RequestPhase.QUERY, RequestType.FAIL, "Couldn't fetched an image");
             messageService.SendMessage(message);

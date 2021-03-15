@@ -99,13 +99,13 @@ public class FileService implements IFileService {
                             boolean isSaved = saveService.SaveImageFromByteArray(message.getPayloadAsByteArray(), fileName);
 
                             if (!isSaved) {
-                                logger.log(Level.INFO, "Received file is corrupted, restarting the query.");
+                                logger.log(Level.INFO, "Received file is corrupted");
                                 fileSuccessful = false;
                                 break;
                             }
                             if (!HashValidator.ValidateImageHash(QueryService.hashValue, fileName)) {
                                 saveService.DeleteImage(fileName);
-                                logger.log(Level.INFO, "Received file and hash does not match, restarting the query.");
+                                logger.log(Level.INFO, "Received file and hash does not match");
                                 fileSuccessful = false;
                                 break;
                             }

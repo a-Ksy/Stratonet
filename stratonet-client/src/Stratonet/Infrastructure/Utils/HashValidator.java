@@ -22,7 +22,7 @@ public class HashValidator {
                 StratonetLogger.getInstance().log(Level.INFO, "Hash is valid");
                 return true;
             }
-        } catch (JsonProcessingException ex) {
+        } catch (Exception ex) {
         }
 
         StratonetLogger.getInstance().log(Level.INFO, "Hash is not valid");

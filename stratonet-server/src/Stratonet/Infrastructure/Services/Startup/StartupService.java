@@ -18,7 +18,7 @@ public class StartupService {
     private UserRepository userRepository;
 
     public StartupService() {
-        BlockingQueue<UserQuery> queue = new ArrayBlockingQueue<>(10);
+        BlockingQueue<UserQuery> queue = new ArrayBlockingQueue<>(100);
         userRepository = UserRepository.getInstance();
 
         authSocketService = new SocketService(AUTH_PORT, ServiceType.AUTH);
